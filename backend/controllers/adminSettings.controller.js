@@ -38,13 +38,56 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function isValidHttpUrl(value) {
+function parseHttpUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === 'http:' || url.protocol === 'https:';
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return url;
   } catch (_error) {
-    return false;
+    return null;
   }
+}
+
+function isValidDomainHost(hostname) {
+  const host = String(hostname || '').toLowerCase();
+  if (!host || host.length > 253) return false;
+  if (host === 'localhost' || host.includes('_') || !host.includes('.')) return false;
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return false;
+
+  return host.split('.').every((part) => (
+    part.length > 0
+    && part.length <= 63
+    && /^[a-z0-9-]+$/.test(part)
+    && !part.startsWith('-')
+    && !part.endsWith('-')
+  ));
+}
+
+function isAllowedPlatformHost(hostname, allowedDomains = []) {
+  const host = String(hostname || '').toLowerCase();
+
+  return allowedDomains.some((domain) => (
+    host === domain || host.endsWith(`.${domain}`)
+  ));
+}
+
+function validateSocialUrl(label, value, allowedDomains) {
+  if (!value) return null;
+
+  const url = parseHttpUrl(value);
+  if (!url) {
+    return `${label} harus diawali http:// atau https://.`;
+  }
+
+  if (!isValidDomainHost(url.hostname)) {
+    return `${label} harus menggunakan domain yang valid.`;
+  }
+
+  if (!isAllowedPlatformHost(url.hostname, allowedDomains)) {
+    return `${label} harus menggunakan domain ${allowedDomains.join(' atau ')}.`;
+  }
+
+  return null;
 }
 
 function validateSettingsPayload(payload) {
@@ -75,13 +118,12 @@ function validateSettingsPayload(payload) {
   }
 
   [
-    ['Instagram URL', payload.instagramUrl],
-    ['Facebook URL', payload.facebookUrl],
-    ['TikTok URL', payload.tiktokUrl],
-  ].forEach(([label, value]) => {
-    if (value && !isValidHttpUrl(value)) {
-      errors.push(`${label} harus diawali http:// atau https://.`);
-    }
+    ['Instagram URL', payload.instagramUrl, ['instagram.com']],
+    ['Facebook URL', payload.facebookUrl, ['facebook.com', 'fb.com']],
+    ['TikTok URL', payload.tiktokUrl, ['tiktok.com']],
+  ].forEach(([label, value, allowedDomains]) => {
+    const error = validateSocialUrl(label, value, allowedDomains);
+    if (error) errors.push(error);
   });
 
   return errors;

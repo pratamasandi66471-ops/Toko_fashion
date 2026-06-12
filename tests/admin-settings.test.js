@@ -225,6 +225,37 @@ describe('admin settings', () => {
     }
   });
 
+  test('incomplete social URL host is rejected and does not update DB', async () => {
+    const originalSettings = await getSettingsMap();
+    await updateSetting('store.name', 'Stable Store Name');
+    const agent = await loginAsAdmin();
+
+    try {
+      const response = await agent
+        .post('/admin/settings')
+        .type('form')
+        .send({
+          store_name: 'Valid Store',
+          store_email: '',
+          store_phone: '+62 812 3456',
+          store_address: '',
+          instagram_url: 'https://ins',
+          facebook_url: '',
+          tiktok_url: '',
+        });
+
+      expect(response.status).toBe(302);
+      expect(response.headers.location).toBe('/admin/settings');
+      expect(await getStoreName()).toBe('Stable Store Name');
+
+      const page = await agent.get('/admin/settings');
+      expect(page.text).toContain('Instagram URL harus menggunakan domain yang valid.');
+      expect(page.text).not.toContain('Website settings berhasil diperbarui.');
+    } finally {
+      await restoreSettings(originalSettings);
+    }
+  });
+
   test('guest, customer, and staff cannot access admin settings', async () => {
     const guestAgent = createAgent();
     const customerAgent = await loginAsCustomer();
