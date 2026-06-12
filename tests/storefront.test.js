@@ -87,7 +87,7 @@ describe('storefront smoke', () => {
     expect(response.status).toBe(200);
   });
 
-  test('footer renders public store settings from DB', async () => {
+  test('navbar and footer render public store settings from DB', async () => {
     await ensureSettingsTable();
     const snapshot = await getSettingsSnapshot();
 

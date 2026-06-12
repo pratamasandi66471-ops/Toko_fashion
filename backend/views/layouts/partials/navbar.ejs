@@ -1,3 +1,11 @@
+<%
+const navbarStore = typeof storeSettings !== 'undefined' && storeSettings ? storeSettings : {};
+const navbarStoreName = navbarStore.name || 'S Fashion';
+const navbarLogoParts = navbarStoreName.split(/\s+/).filter(Boolean);
+const navbarLogoFirst = navbarLogoParts.shift() || 'S';
+const navbarLogoRest = navbarLogoParts.join(' ') || 'Fashion';
+%>
+
 <div class="promo-bar">
     <div class="promo-content">
         <span class="promo-icon">*</span>
@@ -14,7 +22,7 @@
 <header class="navbar-wrapper">
     <nav class="navbar">
         <a href="/" class="logo">
-            S <span>Fashion</span>
+            <%= navbarLogoFirst %> <span><%= navbarLogoRest %></span>
         </a>
 
         <ul class="nav-menu">

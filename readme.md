@@ -292,10 +292,11 @@ Important CSS notes:
 - [x] Allowed setting keys are hardcoded; arbitrary keys from request body are ignored.
 - [x] Admin-only access through existing admin route guard.
 - [x] Public footer reads store identity and social links from DB settings.
+- [x] Public navbar branding reads store name from DB settings.
 - [x] Email templates read store identity/contact from DB settings with safe fallback.
 - [x] Uses `backend/models/adminSettings.model.js`.
 - [x] Uses `backend/controllers/adminSettings.controller.js`.
-- [!] Settings are not yet wired into navbar branding, logo upload, or maintenance mode.
+- [!] Settings are not yet wired into logo upload or maintenance mode.
 
 ### Admin Review Management
 
@@ -656,7 +657,7 @@ Legacy/old admin views still present but not the main route target for implement
 1. **Placeholder admin modules**
    - Shipping, returns, promotions, content, and notifications still render placeholder pages.
    - Shipping needs a schema decision first because active checkout shipping is still hardcoded in `order.model.js`.
-   - Settings are DB-backed and used by footer/email templates; navbar branding, logo upload, and maintenance mode are still later steps.
+   - Settings are DB-backed and used by navbar/footer/email templates; logo upload and maintenance mode are still later steps.
 
 2. **Service layer cleanup**
    - `audit.service.js` and `email.service.js` are implemented.
@@ -768,7 +769,7 @@ Rekomendasi urutan:
   - Jika belum boleh schema change, buat shipping sebagai dokumentasi/settings placeholder lebih dulu, bukan CRUD palsu.
 - Returns/refund workflow, karena berkaitan dengan order/payment/inventory.
 - Notifications center, karena email service dan audit trail sudah ada.
-- Integrasi settings lanjutan ke navbar branding, logo upload, dan maintenance mode.
+- Integrasi settings lanjutan ke logo upload dan maintenance mode.
 
 ### Priority 3 - Test Coverage Expansion
 
@@ -951,5 +952,5 @@ After that:
 2. Move stock and payment helper logic into `stock.service.js` and `payment.service.js`.
 3. Build shipping management and connect checkout shipping to DB when ready.
 4. Build returns/refund workflow.
-5. Build notifications center and continue DB settings integration for navbar branding, logo upload, and maintenance mode.
+5. Build notifications center and continue DB settings integration for logo upload and maintenance mode.
 6. Expand tests for staff workflow, uploads, voucher edge cases, and error middleware.
