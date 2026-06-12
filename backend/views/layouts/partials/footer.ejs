@@ -1,3 +1,16 @@
+<%
+const footerStore = typeof storeSettings !== 'undefined' && storeSettings ? storeSettings : {};
+const footerStoreName = footerStore.name || 'S Fashion';
+const footerLogoParts = footerStoreName.split(/\s+/).filter(Boolean);
+const footerLogoFirst = footerLogoParts.shift() || 'S';
+const footerLogoRest = footerLogoParts.join(' ') || 'Fashion';
+const footerSocials = [
+    { key: 'instagram', href: footerStore.socials?.instagram, label: 'Instagram', icon: 'ri-instagram-line' },
+    { key: 'facebook', href: footerStore.socials?.facebook, label: 'Facebook', icon: 'ri-facebook-fill' },
+    { key: 'tiktok', href: footerStore.socials?.tiktok, label: 'TikTok', icon: 'ri-tiktok-fill' },
+].filter((social) => social.href);
+%>
+
 <footer class="footer">
     <div class="footer-main">
         <div class="footer-decoration footer-decoration-left"></div>
@@ -6,7 +19,7 @@
         <div class="footer-container">
             <div class="footer-brand">
                 <a href="/" class="footer-logo">
-                    S <span>Fashion</span>
+                    <%= footerLogoFirst %> <span><%= footerLogoRest %></span>
                 </a>
 
                 <p class="footer-tagline">
@@ -18,20 +31,15 @@
                     Timeless designs, effortless comfort, and quality you can feel in every detail.
                 </p>
 
-                <div class="footer-socials">
-                    <a href="/shop" aria-label="Instagram">
-                        <i class="ri-instagram-line"></i>
-                    </a>
-                    <a href="/shop" aria-label="Facebook">
-                        <i class="ri-facebook-fill"></i>
-                    </a>
-                    <a href="/shop" aria-label="Pinterest">
-                        <i class="ri-pinterest-fill"></i>
-                    </a>
-                    <a href="/shop" aria-label="TikTok">
-                        <i class="ri-tiktok-fill"></i>
-                    </a>
-                </div>
+                <% if (footerSocials.length > 0) { %>
+                    <div class="footer-socials">
+                        <% footerSocials.forEach((social) => { %>
+                            <a href="<%= social.href %>" aria-label="<%= social.label %>" target="_blank" rel="noopener noreferrer">
+                                <i class="<%= social.icon %>"></i>
+                            </a>
+                        <% }); %>
+                    </div>
+                <% } %>
             </div>
 
             <div class="footer-column">
@@ -96,33 +104,39 @@
             <div class="footer-contact">
                 <h3>Contact Us</h3>
 
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="ri-phone-line"></i>
+                <% if (footerStore.phone) { %>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="ri-phone-line"></i>
+                        </div>
+                        <a href="tel:<%= footerStore.phone.replace(/[^0-9+]/g, '') %>"><%= footerStore.phone %></a>
                     </div>
-                    <a href="tel:+6281234567890">+62 812-3456-7890</a>
-                </div>
+                <% } %>
 
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="ri-mail-line"></i>
+                <% if (footerStore.email) { %>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="ri-mail-line"></i>
+                        </div>
+                        <a href="mailto:<%= footerStore.email %>"><%= footerStore.email %></a>
                     </div>
-                    <a href="mailto:hello@sfashion.com">hello@sfashion.com</a>
-                </div>
+                <% } %>
 
-                <div class="contact-item">
-                    <div class="contact-icon">
-                        <i class="ri-map-pin-line"></i>
+                <% if (footerStore.address) { %>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="ri-map-pin-line"></i>
+                        </div>
+                        <p><%= footerStore.address %></p>
                     </div>
-                    <p>Serang Fashion Street, Indonesia</p>
-                </div>
+                <% } %>
             </div>
         </div>
     </div>
 
     <div class="footer-bottom">
         <div class="footer-bottom-container">
-            <p>&copy; <%= new Date().getFullYear() %> S Fashion. All rights reserved.</p>
+            <p>&copy; <%= new Date().getFullYear() %> <%= footerStoreName %>. All rights reserved.</p>
 
             <div class="footer-bottom-links">
                 <a href="/shop">Terms of Service</a>

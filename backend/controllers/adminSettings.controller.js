@@ -1,4 +1,5 @@
 const adminSettingsModel = require('../models/adminSettings.model');
+const settingsModel = require('../models/settings.model');
 const auditService = require('../services/audit.service');
 
 const SETTINGS_GROUPS = ['store', 'social'];
@@ -168,6 +169,7 @@ async function updateSettings(req, res, next) {
     const newSettings = mapPayloadToSettings(payload);
 
     await adminSettingsModel.updateSettings(newSettings);
+    settingsModel.clearSettingsCache();
 
     await auditService.logActivity(req, {
       action: 'ADMIN_SETTINGS_UPDATED',

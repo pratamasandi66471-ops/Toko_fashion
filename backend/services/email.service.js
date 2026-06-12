@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 
 const formatCurrency = require('../helper/formatCurrency');
+const settingsModel = require('../models/settings.model');
 
 const DEFAULT_FROM = '"S Fashion" <no-reply@sfashion.test>';
 
@@ -67,17 +68,34 @@ async function sendEmail({ to, subject, html, text }) {
   return info;
 }
 
-function buildEmailShell(title, bodyHtml) {
+async function getEmailStoreSettings() {
+  try {
+    return await settingsModel.getStoreSettings();
+  } catch (error) {
+    console.error('[email] Failed to load store settings:', error);
+    return settingsModel.toStoreSettings(settingsModel.DEFAULT_PUBLIC_SETTINGS);
+  }
+}
+
+function buildEmailShell(title, bodyHtml, store = {}) {
+  const storeName = store.name || 'S Fashion';
+  const contactRows = [
+    store.email ? `<p style="margin:4px 0;color:#5f5871;">Email: ${escapeHtml(store.email)}</p>` : '',
+    store.phone ? `<p style="margin:4px 0;color:#5f5871;">Phone: ${escapeHtml(store.phone)}</p>` : '',
+    store.address ? `<p style="margin:4px 0;color:#5f5871;">Address: ${escapeHtml(store.address)}</p>` : '',
+  ].filter(Boolean).join('');
+
   return `
     <div style="margin:0;padding:24px;background:#f8f3f4;font-family:Arial,sans-serif;color:#1C1531;">
       <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;border:1px solid #F4E1E1;">
         <div style="padding:24px;background:#1C1531;color:#fff;">
-          <p style="margin:0 0 6px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#F4E1E1;">S Fashion</p>
+          <p style="margin:0 0 6px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#F4E1E1;">${escapeHtml(storeName)}</p>
           <h1 style="margin:0;font-size:24px;line-height:1.3;">${escapeHtml(title)}</h1>
         </div>
         <div style="padding:24px;">
           ${bodyHtml}
         </div>
+        ${contactRows ? `<div style="padding:18px 24px;border-top:1px solid #F4E1E1;background:#fff8fa;">${contactRows}</div>` : ''}
       </div>
     </div>
   `;
@@ -114,6 +132,7 @@ function buildItemsTable(items = []) {
 }
 
 async function sendOrderPlacedEmail({ customer, order, items = [] }) {
+  const store = await getEmailStoreSettings();
   const customerName = customer?.name || 'Customer';
   const invoice = order?.invoiceNumber || order?.invoice_number || '-';
   const total = order?.totalAmount ?? order?.total_amount;
@@ -121,16 +140,16 @@ async function sendOrderPlacedEmail({ customer, order, items = [] }) {
 
   const html = buildEmailShell('Order berhasil dibuat', `
     <p style="margin:0 0 12px;">Halo ${escapeHtml(customerName)},</p>
-    <p style="margin:0 0 16px;color:#5f5871;">Terima kasih sudah belanja di S Fashion. Pesanan kamu sudah kami terima.</p>
+    <p style="margin:0 0 16px;color:#5f5871;">Terima kasih sudah belanja di ${escapeHtml(store.name || 'S Fashion')}. Pesanan kamu sudah kami terima.</p>
     <p style="margin:0;"><strong>Invoice:</strong> ${escapeHtml(invoice)}</p>
     <p style="margin:6px 0;"><strong>Total:</strong> ${formatCurrency(total)}</p>
     ${discount > 0 ? `<p style="margin:6px 0;"><strong>Diskon:</strong> -${formatCurrency(discount)}</p>` : ''}
     ${buildItemsTable(items)}
-  `);
+  `, store);
 
   const text = [
     `Halo ${customerName},`,
-    `Pesanan kamu berhasil dibuat.`,
+    `Pesanan kamu berhasil dibuat di ${store.name || 'S Fashion'}.`,
     `Invoice: ${invoice}`,
     `Total: ${formatCurrency(total)}`,
   ].join('\n');
@@ -144,6 +163,7 @@ async function sendOrderPlacedEmail({ customer, order, items = [] }) {
 }
 
 async function sendPaymentVerifiedEmail({ customer, order }) {
+  const store = await getEmailStoreSettings();
   const customerName = customer?.name || 'Customer';
   const invoice = order?.invoiceNumber || order?.invoice_number || '-';
   const total = order?.totalAmount ?? order?.total_amount;
@@ -153,11 +173,11 @@ async function sendPaymentVerifiedEmail({ customer, order }) {
     <p style="margin:0 0 16px;color:#5f5871;">Pembayaran untuk pesanan kamu sudah berhasil diverifikasi. Kami akan lanjut memproses pesananmu.</p>
     <p style="margin:0;"><strong>Invoice:</strong> ${escapeHtml(invoice)}</p>
     <p style="margin:6px 0;"><strong>Total:</strong> ${formatCurrency(total)}</p>
-  `);
+  `, store);
 
   const text = [
     `Halo ${customerName},`,
-    `Pembayaran kamu sudah diverifikasi.`,
+    `Pembayaran kamu sudah diverifikasi oleh ${store.name || 'S Fashion'}.`,
     `Invoice: ${invoice}`,
     `Total: ${formatCurrency(total)}`,
   ].join('\n');
@@ -171,6 +191,7 @@ async function sendPaymentVerifiedEmail({ customer, order }) {
 }
 
 async function sendOrderShippedEmail({ customer, order }) {
+  const store = await getEmailStoreSettings();
   const customerName = customer?.name || 'Customer';
   const invoice = order?.invoiceNumber || order?.invoice_number || '-';
   const courier = order?.courier || '-';
@@ -182,11 +203,11 @@ async function sendOrderShippedEmail({ customer, order }) {
     <p style="margin:0;"><strong>Invoice:</strong> ${escapeHtml(invoice)}</p>
     <p style="margin:6px 0;"><strong>Courier:</strong> ${escapeHtml(courier)}</p>
     <p style="margin:6px 0;"><strong>Tracking:</strong> ${escapeHtml(trackingNumber)}</p>
-  `);
+  `, store);
 
   const text = [
     `Halo ${customerName},`,
-    `Pesanan kamu sudah dikirim.`,
+    `Pesanan kamu dari ${store.name || 'S Fashion'} sudah dikirim.`,
     `Invoice: ${invoice}`,
     `Courier: ${courier}`,
     `Tracking: ${trackingNumber}`,
