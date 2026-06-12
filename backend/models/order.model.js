@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const voucherModel = require('./voucher.model');
+const shippingModel = require('./shipping.model');
 const orderService = require('../services/order.service');
 const stockService = require('../services/stock.service');
 let ordersColumnCache = null;
@@ -25,10 +26,10 @@ async function getOrdersColumns() {
   return ordersColumnLoading;
 }
 
-const SHIPPING_METHODS = {
-  regular: { key: 'regular', label: 'Reguler', cost: 15000 },
-  express: { key: 'express', label: 'Express', cost: 30000 },
-};
+const SHIPPING_METHODS = shippingModel.DEFAULT_SHIPPING_METHODS.reduce((methods, method) => {
+  methods[method.key] = method;
+  return methods;
+}, {});
 
 const PAYMENT_METHODS = {
   bank_transfer: { key: 'bank_transfer', label: 'Bank Transfer', initialStatus: 'pending_verification' },
@@ -54,6 +55,10 @@ async function listAddressesByUser(userId) {
      ORDER BY is_default DESC, created_at DESC`,
     [userId]
   );
+}
+
+async function listShippingOptions() {
+  return shippingModel.listActiveShippingMethods();
 }
 
 async function findAddressByIdAndUser(addressId, userId, conn = null) {
@@ -177,10 +182,9 @@ async function findVoucherByCodeForUpdate(code, conn) {
 }
 
 async function placeOrderFromCart({ userId, addressId, shippingMethod, paymentMethod, notes, voucherCode = '' }) {
-  const shipping = SHIPPING_METHODS[shippingMethod];
   const payment = PAYMENT_METHODS[paymentMethod];
 
-  if (!shipping || !payment) {
+  if (!payment) {
     const error = new Error('Metode pengiriman atau pembayaran tidak valid.');
     error.code = 'INVALID_CHECKOUT_OPTION';
     throw error;
@@ -190,6 +194,17 @@ async function placeOrderFromCart({ userId, addressId, shippingMethod, paymentMe
 
   try {
     await conn.beginTransaction();
+
+    const shipping = await shippingModel.findByCode(shippingMethod, conn, {
+      activeOnly: true,
+      forUpdate: true,
+    });
+
+    if (!shipping) {
+      const error = new Error('Metode pengiriman tidak valid atau sedang tidak aktif.');
+      error.code = 'INVALID_CHECKOUT_OPTION';
+      throw error;
+    }
 
     const address = await findAddressByIdAndUser(addressId, userId, conn);
     if (!address) {
@@ -431,6 +446,7 @@ async function findOrderSuccessByInvoiceAndUser(invoiceNumber, userId) {
 module.exports = {
   SHIPPING_METHODS,
   PAYMENT_METHODS,
+  listShippingOptions,
   listAddressesByUser,
   findAddressByIdAndUser,
   createAddressByUser,

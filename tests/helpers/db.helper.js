@@ -38,6 +38,60 @@ async function getActiveProductSlug() {
   return row?.slug || null;
 }
 
+async function ensureTestShippingMethods() {
+  assertTestDatabase();
+
+  await query(
+    `CREATE TABLE IF NOT EXISTS shipping_methods (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      code VARCHAR(50) NOT NULL UNIQUE,
+      name VARCHAR(100) NOT NULL,
+      description TEXT NULL,
+      cost DECIMAL(12,2) NOT NULL DEFAULT 0,
+      estimated_days VARCHAR(50) NULL,
+      status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_shipping_methods_status (status),
+      INDEX idx_shipping_methods_sort (sort_order)
+    )`
+  );
+
+  await query(
+    `INSERT INTO shipping_methods
+      (code, name, description, cost, estimated_days, status, sort_order)
+     VALUES
+      ('regular', 'Reguler', 'Pengiriman standar untuk pesanan S Fashion.', 15000, '2-4 hari', 'active', 10),
+      ('express', 'Express', 'Pengiriman lebih cepat untuk area yang tersedia.', 30000, '1-2 hari', 'active', 20)
+     ON DUPLICATE KEY UPDATE
+      code = VALUES(code)`
+  );
+}
+
+async function ensureTestReturnRequestsTable() {
+  assertTestDatabase();
+
+  await query(
+    `CREATE TABLE IF NOT EXISTS return_requests (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      return_code VARCHAR(100) NOT NULL UNIQUE,
+      order_id BIGINT UNSIGNED NOT NULL,
+      customer_id BIGINT UNSIGNED NOT NULL,
+      reason TEXT NOT NULL,
+      admin_note TEXT NULL,
+      refund_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+      status ENUM('requested', 'approved', 'rejected', 'received', 'refunded', 'cancelled') NOT NULL DEFAULT 'requested',
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_return_requests_order (order_id),
+      INDEX idx_return_requests_customer (customer_id),
+      INDEX idx_return_requests_status (status),
+      INDEX idx_return_requests_created_at (created_at)
+    )`
+  );
+}
+
 async function getActiveVariantWithStock() {
   return queryOne(
     `SELECT pv.id, pv.stock, pv.product_id, pv.status, pv.variant_sku
@@ -273,6 +327,67 @@ async function cleanupVoucherByCode(code) {
   );
 }
 
+async function getShippingMethodByCode(code) {
+  return queryOne(
+    `SELECT sm.id, sm.code, sm.name, sm.description, sm.cost, sm.estimated_days,
+            sm.status, sm.sort_order
+     FROM shipping_methods sm
+     WHERE sm.code = ?
+     LIMIT 1`,
+    [String(code || '').trim()]
+  );
+}
+
+async function cleanupShippingMethodByCode(code) {
+  assertTestDatabase();
+
+  const safeCode = String(code || '').trim();
+  if (!safeCode) {
+    throw new Error('cleanupShippingMethodByCode requires a shipping code.');
+  }
+
+  await query(
+    `DELETE sm
+     FROM shipping_methods sm
+     WHERE sm.code = ?`,
+    [safeCode]
+  );
+}
+
+async function getReturnByCode(code) {
+  return queryOne(
+    `SELECT rr.id, rr.return_code, rr.order_id, rr.customer_id, rr.reason,
+            rr.admin_note, rr.refund_amount, rr.status
+     FROM return_requests rr
+     WHERE rr.return_code = ?
+     LIMIT 1`,
+    [String(code || '').trim()]
+  );
+}
+
+async function getReturnByOrderId(orderId) {
+  return queryOne(
+    `SELECT rr.id, rr.return_code, rr.order_id, rr.customer_id, rr.reason,
+            rr.admin_note, rr.refund_amount, rr.status
+     FROM return_requests rr
+     WHERE rr.order_id = ?
+     ORDER BY rr.id DESC
+     LIMIT 1`,
+    [orderId]
+  );
+}
+
+async function cleanupReturnsByOrderId(orderId) {
+  assertTestDatabase();
+
+  await query(
+    `DELETE rr
+     FROM return_requests rr
+     WHERE rr.order_id = ?`,
+    [orderId]
+  );
+}
+
 async function getPaymentByOrderId(orderId) {
   return queryOne(
     `SELECT pay.id, pay.order_id, pay.method, pay.payment_method, pay.amount,
@@ -333,6 +448,8 @@ module.exports = {
   assertTestDatabase,
   query,
   queryOne,
+  ensureTestShippingMethods,
+  ensureTestReturnRequestsTable,
   getActiveProductSlug,
   getActiveVariantWithStock,
   getCustomerByEmail,
@@ -351,6 +468,11 @@ module.exports = {
   createTestVoucher,
   getVoucherByCode,
   cleanupVoucherByCode,
+  getShippingMethodByCode,
+  cleanupShippingMethodByCode,
+  getReturnByCode,
+  getReturnByOrderId,
+  cleanupReturnsByOrderId,
   getPaymentByOrderId,
   getOrderItems,
   getLatestAuditLog,

@@ -176,6 +176,23 @@ CREATE TABLE IF NOT EXISTS payments (
   INDEX idx_payments_paid_at (paid_at)
 );
 
+CREATE TABLE IF NOT EXISTS return_requests (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  return_code VARCHAR(100) NOT NULL UNIQUE,
+  order_id BIGINT UNSIGNED NOT NULL,
+  customer_id BIGINT UNSIGNED NOT NULL,
+  reason TEXT NOT NULL,
+  admin_note TEXT NULL,
+  refund_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+  status ENUM('requested', 'approved', 'rejected', 'received', 'refunded', 'cancelled') NOT NULL DEFAULT 'requested',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_return_requests_order (order_id),
+  INDEX idx_return_requests_customer (customer_id),
+  INDEX idx_return_requests_status (status),
+  INDEX idx_return_requests_created_at (created_at)
+);
+
 CREATE TABLE IF NOT EXISTS reviews (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   customer_id BIGINT UNSIGNED NOT NULL,
@@ -235,3 +252,26 @@ VALUES
   ('social.tiktok', '', 'social', 'string', 1)
 ON DUPLICATE KEY UPDATE
   setting_key = VALUES(setting_key);
+
+CREATE TABLE IF NOT EXISTS shipping_methods (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL,
+  description TEXT NULL,
+  cost DECIMAL(12,2) NOT NULL DEFAULT 0,
+  estimated_days VARCHAR(50) NULL,
+  status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_shipping_methods_status (status),
+  INDEX idx_shipping_methods_sort (sort_order)
+);
+
+INSERT INTO shipping_methods
+  (code, name, description, cost, estimated_days, status, sort_order)
+VALUES
+  ('regular', 'Reguler', 'Pengiriman standar untuk pesanan S Fashion.', 15000, '2-4 hari', 'active', 10),
+  ('express', 'Express', 'Pengiriman lebih cepat untuk area yang tersedia.', 30000, '1-2 hari', 'active', 20)
+ON DUPLICATE KEY UPDATE
+  code = VALUES(code);

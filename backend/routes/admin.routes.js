@@ -12,8 +12,10 @@ const adminPaymentController = require("../controllers/adminPayment.controller")
 const adminProfileController = require("../controllers/adminProfile.controller");
 const adminProductController = require("../controllers/adminProduct.controller");
 const adminReportController = require("../controllers/adminReport.controller");
+const adminReturnController = require("../controllers/adminReturn.controller");
 const adminReviewController = require("../controllers/adminReview.controller");
 const adminSettingsController = require("../controllers/adminSettings.controller");
+const adminShippingController = require("../controllers/adminShipping.controller");
 const adminStaffController = require("../controllers/adminStaff.controller");
 const adminVoucherController = require("../controllers/adminVoucher.controller");
 const { uploadProductImage } = require("../middleware/upload.middleware");
@@ -88,8 +90,18 @@ router.get("/payments", adminPaymentController.index);
 router.get("/payments/:id", adminPaymentController.show);
 router.post("/payments/:id/verify", adminPaymentController.verify);
 router.post("/payments/:id/reject", adminPaymentController.reject);
-router.get("/shipping", adminController.renderPlaceholder("shipping"));
-router.get("/returns", adminController.renderPlaceholder("returns"));
+router.get("/shipping", adminShippingController.index);
+router.get("/shipping/create", adminShippingController.showCreate);
+router.post("/shipping", adminShippingController.create);
+router.get("/shipping/:id/edit", adminShippingController.showEdit);
+router.post("/shipping/:id/update", adminShippingController.update);
+router.post("/shipping/:id/toggle-status", adminShippingController.toggleStatus);
+router.get("/returns", adminReturnController.index);
+router.get("/returns/create", adminReturnController.showCreate);
+router.post("/returns", adminReturnController.create);
+router.get("/returns/:id", adminReturnController.show);
+router.post("/returns/:id/status", adminReturnController.updateStatus);
+router.post("/returns/:id/note", adminReturnController.updateNote);
 
 // Growth placeholder
 router.get("/reviews", adminReviewController.index);

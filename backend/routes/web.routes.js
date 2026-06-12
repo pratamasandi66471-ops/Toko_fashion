@@ -129,7 +129,10 @@ const placeOrderValidationRules = [
     .isInt({ min: 1 })
     .withMessage('Alamat pengiriman wajib dipilih.'),
   body('shipping_method')
-    .isIn(['regular', 'express'])
+    .trim()
+    .notEmpty()
+    .withMessage('Metode pengiriman wajib dipilih.')
+    .isLength({ max: 50 })
     .withMessage('Metode pengiriman tidak valid.'),
   body('payment_method')
     .isIn(['bank_transfer', 'cod'])

@@ -5,6 +5,7 @@ const {
   cleanupOrdersByMarker,
   closePool,
   createTestMarker,
+  ensureTestShippingMethods,
   ensureTestAddress,
   getActiveVariantWithStock,
   getLatestAuditLog,
@@ -17,6 +18,8 @@ const {
 } = require('./helpers/db.helper');
 
 async function createCheckoutOrderFixture({ marker, quantity = 1, stock = 20 }) {
+  await ensureTestShippingMethods();
+
   const customer = await getTestCustomer();
   expect(customer).toBeTruthy();
 

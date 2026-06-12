@@ -23,10 +23,10 @@ Yang sudah kuat:
 - Struktur CSS sudah dipisah ke folder `base`, `customer`, `admin`, `staff`, dan `auth`; file CSS root lama hanya legacy compatibility copy.
 
 Yang masih belum selesai:
-- Admin placeholder nyata: shipping, returns, promotions, content, dan notifications.
-- Admin Settings sudah editable di DB dan mulai terintegrasi ke footer storefront serta email template.
+- Admin placeholder nyata: promotions, content, dan notifications.
+- Admin Settings sudah editable di DB dan terintegrasi ke navbar, footer storefront, serta email template.
 - Service layer sudah mulai diisi, tetapi belum dipakai luas di semua controller/model.
-- Checkout shipping masih memakai konstanta `SHIPPING_METHODS` di `backend/models/order.model.js`; belum DB-driven.
+- Checkout shipping sudah membaca metode aktif dari tabel `shipping_methods`.
 - Fresh setup, seed, dan migration perlu terus dijaga agar cocok dengan schema aktif.
 
 ## Runtime Architecture
@@ -90,6 +90,7 @@ public/css/
       reports.css
       reviews.css
       settings.css
+      shipping.css
       staff-management.css
       vouchers.css
   staff/
@@ -151,7 +152,8 @@ Important CSS notes:
 - [x] Render cart summary from DB.
 - [x] Checkout page.
 - [x] Save customer address.
-- [x] Shipping method: `regular`, `express`.
+- [x] Shipping method is DB-driven through `shipping_methods`.
+- [x] Default shipping seed includes `regular` and `express`.
 - [x] Payment method: `bank_transfer`, `cod`.
 - [x] Place order in DB transaction.
 - [x] Reduce variant stock on successful checkout.
@@ -298,6 +300,33 @@ Important CSS notes:
 - [x] Uses `backend/controllers/adminSettings.controller.js`.
 - [!] Settings are not yet wired into logo upload or maintenance mode.
 
+### Admin Shipping Management
+
+- [x] `/admin/shipping` real shipping management page.
+- [x] Admin can list, search, create, edit, and toggle shipping methods.
+- [x] Shipping methods are stored in the `shipping_methods` table.
+- [x] Migration `database/migrations/create_shipping_methods_table.sql`.
+- [x] `database/schema.sql` includes `shipping_methods` for fresh setup.
+- [x] Checkout reads active shipping methods from DB.
+- [x] Shipping updates are audited after successful admin actions.
+- [x] Uses `backend/models/shipping.model.js`.
+- [x] Uses `backend/controllers/adminShipping.controller.js`.
+- [!] Shipping rates are still flat per method; no region/courier API integration yet.
+
+### Admin Returns / Refunds
+
+- [x] `/admin/returns` real returns/refunds management page.
+- [x] Admin can list and search return requests.
+- [x] Admin can create a manual return request from a shipped/completed order.
+- [x] Admin can update return status and internal refund note.
+- [x] Return requests are stored in the `return_requests` table.
+- [x] Migration `database/migrations/create_return_requests_table.sql`.
+- [x] `database/schema.sql` includes `return_requests` for fresh setup.
+- [x] Return updates are audited after successful admin actions.
+- [x] Uses `backend/models/adminReturn.model.js`.
+- [x] Uses `backend/controllers/adminReturn.controller.js`.
+- [!] MVP does not auto-restock inventory or execute real payment refunds.
+
 ### Admin Review Management
 
 - [x] `/admin/reviews` list.
@@ -420,8 +449,6 @@ Important CSS notes:
 
 ### Admin Modules Still Placeholder
 
-- [ ] `/admin/shipping`
-- [ ] `/admin/returns`
 - [ ] `/admin/promotions`
 - [ ] `/admin/content`
 - [ ] `/admin/notifications`
@@ -556,8 +583,18 @@ Important CSS notes:
 | POST | `/admin/profile/password` | Active |
 | GET | `/admin/settings` | Active |
 | POST | `/admin/settings` | Active |
-| GET | `/admin/shipping` | Placeholder |
-| GET | `/admin/returns` | Placeholder |
+| GET | `/admin/shipping` | Active |
+| GET | `/admin/shipping/create` | Active |
+| POST | `/admin/shipping` | Active |
+| GET | `/admin/shipping/:id/edit` | Active |
+| POST | `/admin/shipping/:id/update` | Active |
+| POST | `/admin/shipping/:id/toggle-status` | Active |
+| GET | `/admin/returns` | Active |
+| GET | `/admin/returns/create` | Active |
+| POST | `/admin/returns` | Active |
+| GET | `/admin/returns/:id` | Active |
+| POST | `/admin/returns/:id/status` | Active |
+| POST | `/admin/returns/:id/note` | Active |
 | GET | `/admin/promotions` | Placeholder |
 | GET | `/admin/content` | Placeholder |
 | GET | `/admin/notifications` | Placeholder |
@@ -592,12 +629,15 @@ Main tables used by runtime:
 - `reviews`
 - `vouchers`
 - `settings`
+- `shipping_methods`
+- `return_requests`
 - `audit_logs` via migration
 
 Important notes:
 - `products` does not store stock or image URL directly. Stock lives in `product_variants.stock`; images live in `product_images.image_url`.
 - Cart and product detail flow use `product_variant_id`.
 - Checkout voucher logic uses `vouchers` and increments `used_count`.
+- Checkout shipping logic uses active rows from `shipping_methods`; orders keep a snapshot through `shipping_cost` and `courier`.
 - `orders.status` and `orders.order_status` both exist. Admin order management uses `orders.status` as the main editable status and syncs `orders.order_status`.
 - `payments.status` and `orders.payment_status` can differ. Admin order/payment pages display payment record status first when available.
 - `audit_logs` has no foreign key by design so logs survive user changes/deletion.
@@ -605,6 +645,8 @@ Important notes:
 - `database/migration_hardening_cart_checkout.sql` exists for legacy hardening.
 - `database/migrations/create_audit_logs.sql` must be run before using `/admin/audit-logs`.
 - `database/migrations/create_settings_table.sql` creates DB-backed admin settings.
+- `database/migrations/create_shipping_methods_table.sql` creates DB-backed checkout shipping methods.
+- `database/migrations/create_return_requests_table.sql` creates DB-backed return/refund requests.
 - Back up DB before running migrations.
 
 ## Important Views
@@ -636,6 +678,12 @@ Implemented views include:
   - `backend/views/admin/reports/index.ejs`
   - `backend/views/admin/audit-logs/index.ejs`
   - `backend/views/admin/settings/index.ejs`
+  - `backend/views/admin/shipping/index.ejs`
+  - `backend/views/admin/shipping/create.ejs`
+  - `backend/views/admin/shipping/edit.ejs`
+  - `backend/views/admin/returns/index.ejs`
+  - `backend/views/admin/returns/create.ejs`
+  - `backend/views/admin/returns/detail.ejs`
 - Staff:
   - `backend/views/staff/dashboard.ejs`
   - `backend/views/staff/orders.ejs`
@@ -655,8 +703,9 @@ Legacy/old admin views still present but not the main route target for implement
 ## Known Gaps & Technical Debt
 
 1. **Placeholder admin modules**
-   - Shipping, returns, promotions, content, and notifications still render placeholder pages.
-   - Shipping needs a schema decision first because active checkout shipping is still hardcoded in `order.model.js`.
+   - Promotions, content, and notifications still render placeholder pages.
+   - Shipping is DB-backed for flat shipping methods, but does not yet support region-based rates, courier API sync, or tracking provider integration.
+   - Returns/refunds are DB-backed, but do not yet auto-restock inventory or execute real payment gateway refunds.
    - Settings are DB-backed and used by navbar/footer/email templates; logo upload and maintenance mode are still later steps.
 
 2. **Service layer cleanup**
@@ -716,8 +765,8 @@ Legacy/old admin views still present but not the main route target for implement
 - [x] Audit logs.
 - [x] Admin profile page.
 - [x] Website settings.
-- [ ] Shipping management.
-- [ ] Returns/refund workflow.
+- [x] Shipping management.
+- [x] Returns/refund workflow.
 - [ ] Promotions/content management.
 - [ ] Notifications center.
 
@@ -757,17 +806,14 @@ Alasan prioritas:
 Status: **belum selesai**.
 
 Route yang masih placeholder:
-- `/admin/shipping`
-- `/admin/returns`
 - `/admin/promotions`
 - `/admin/content`
 - `/admin/notifications`
 
 Rekomendasi urutan:
-- Shipping management, karena checkout saat ini masih memakai hardcoded `regular` dan `express`.
-  - Sebelum implementasi penuh, tentukan apakah boleh menambah migration `shipping_methods`.
-  - Jika belum boleh schema change, buat shipping sebagai dokumentasi/settings placeholder lebih dulu, bukan CRUD palsu.
-- Returns/refund workflow, karena berkaitan dengan order/payment/inventory.
+- Promotions/content management, karena coupon/voucher, settings, dan storefront sudah tersedia.
+- Shipping lanjutan hanya jika butuh rate per wilayah, integrasi courier API, atau tracking provider.
+- Returns lanjutan hanya jika butuh auto-restock, payment gateway refund, atau customer-submitted return request.
 - Notifications center, karena email service dan audit trail sudah ada.
 - Integrasi settings lanjutan ke logo upload dan maintenance mode.
 
@@ -788,7 +834,7 @@ Yang masih bagus ditambahkan:
 - Upload image validation tests.
 - Voucher edge case tests.
 - Error middleware tests.
-- Shipping/returns tests setelah modulnya dibuat.
+- Promotions/content/notifications tests setelah modulnya dibuat.
 
 ### Priority 4 - Optional Route/Frontend Cleanup
 
@@ -927,6 +973,7 @@ Backup:
 - [ ] Staff create/edit/status works.
 - [ ] Reviews list/detail/delete works.
 - [ ] Coupons create/edit/toggle works.
+- [ ] Shipping create/edit/toggle works and checkout shows active DB methods.
 - [ ] Reports render with date filter.
 - [ ] Audit logs capture admin/staff actions.
 
@@ -950,7 +997,6 @@ Fastest high-impact next step:
 After that:
 
 2. Move stock and payment helper logic into `stock.service.js` and `payment.service.js`.
-3. Build shipping management and connect checkout shipping to DB when ready.
-4. Build returns/refund workflow.
-5. Build notifications center and continue DB settings integration for logo upload and maintenance mode.
-6. Expand tests for staff workflow, uploads, voucher edge cases, and error middleware.
+3. Build promotions/content management.
+4. Build notifications center and continue DB settings integration for logo upload and maintenance mode.
+5. Expand tests for staff workflow, uploads, voucher edge cases, shipping/returns edge cases, and error middleware.
