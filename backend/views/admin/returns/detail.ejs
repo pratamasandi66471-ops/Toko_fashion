@@ -1,0 +1,125 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Return Detail',
+  description: returnRequest.return_code
+}) %>
+
+<section class="returns-page return-detail-page">
+  <section class="return-detail-header">
+    <div>
+      <a href="/admin/returns" class="back-link"><i class="ri-arrow-left-line"></i>Back to Returns</a>
+      <h2><%= returnRequest.return_code %></h2>
+      <p><%= returnRequest.invoice_number || returnRequest.order_code %></p>
+    </div>
+    <div class="detail-badges">
+      <span class="return-badge return-<%= returnRequest.status %>"><%= titleCase(returnRequest.status) %></span>
+      <span class="return-badge order-<%= returnRequest.order_status %>">Order <%= titleCase(returnRequest.order_status) %></span>
+      <span class="return-badge payment-<%= returnRequest.order_payment_status %>">Payment <%= titleCase(returnRequest.order_payment_status) %></span>
+    </div>
+  </section>
+
+  <section class="return-detail-grid">
+    <article class="return-card">
+      <h3>Return Summary</h3>
+      <dl class="summary-list">
+        <div><dt>Refund Amount</dt><dd><%= formatRupiah(returnRequest.refund_amount) %></dd></div>
+        <div><dt>Order Total</dt><dd><%= formatRupiah(returnRequest.total_amount) %></dd></div>
+        <div><dt>Created</dt><dd><%= formatDate(returnRequest.created_at) %></dd></div>
+        <div><dt>Updated</dt><dd><%= formatDate(returnRequest.updated_at) %></dd></div>
+      </dl>
+      <div class="notes-box">
+        <strong>Reason</strong>
+        <p><%= returnRequest.reason || '-' %></p>
+      </div>
+    </article>
+
+    <article class="return-card">
+      <h3>Customer</h3>
+      <p class="info-line"><i class="ri-user-line"></i><strong><%= returnRequest.customer_name || '-' %></strong></p>
+      <p class="info-line"><i class="ri-mail-line"></i><%= returnRequest.customer_email || '-' %></p>
+      <p class="info-line"><i class="ri-phone-line"></i><%= returnRequest.customer_phone || '-' %></p>
+    </article>
+
+    <article class="return-card">
+      <h3>Payment</h3>
+      <p class="info-line"><strong>Method:</strong> <%= returnRequest.payment_method || '-' %></p>
+      <p class="info-line"><strong>Status:</strong> <%= titleCase(returnRequest.payment_status || returnRequest.order_payment_status) %></p>
+      <p class="info-line"><strong>Amount:</strong> <%= formatRupiah(returnRequest.payment_amount || returnRequest.total_amount) %></p>
+    </article>
+  </section>
+
+  <section class="crud-panel">
+    <div class="panel-heading-row">
+      <div>
+        <h3>Order Items</h3>
+        <p>Items from the original order. Return quantities are not split per item in this MVP.</p>
+      </div>
+    </div>
+    <div class="crud-table-wrap">
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Variant</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% items.forEach((item) => { %>
+            <tr>
+              <td data-label="Product"><strong><%= item.product_name %></strong></td>
+              <td data-label="Variant">
+                <small><%= item.variant_sku || '-' %></small>
+                <small><%= item.size %> / <%= item.color %></small>
+              </td>
+              <td data-label="Price"><%= formatRupiah(item.display_price) %></td>
+              <td data-label="Qty"><%= item.quantity %></td>
+              <td data-label="Total"><strong><%= formatRupiah(item.display_total) %></strong></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="return-actions-grid">
+    <article class="return-card">
+      <h3>Update Status</h3>
+      <form method="POST" action="/admin/returns/<%= returnRequest.id %>/status" class="compact-action-form">
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <% returnStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= returnRequest.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn primary">Update Status</button>
+      </form>
+    </article>
+
+    <article class="return-card">
+      <h3>Refund & Note</h3>
+      <form method="POST" action="/admin/returns/<%= returnRequest.id %>/note" class="compact-action-form">
+        <label>
+          <span>Refund Amount</span>
+          <input type="number" name="refund_amount" value="<%= returnRequest.refund_amount || 0 %>" min="0" step="100" />
+        </label>
+        <label>
+          <span>Admin Note</span>
+          <textarea name="admin_note" rows="4" maxlength="1000"><%= returnRequest.admin_note || '' %></textarea>
+        </label>
+        <button type="submit" class="crud-btn secondary">Save Note</button>
+      </form>
+    </article>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

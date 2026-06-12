@@ -1,0 +1,45 @@
+<div class="form-grid">
+  <label>
+    <span>Code</span>
+    <input type="text" name="code" value="<%= old.code || '' %>" placeholder="regular" maxlength="50" required />
+    <% if (formErrors.code) { %><small class="field-error"><%= formErrors.code %></small><% } %>
+  </label>
+
+  <label>
+    <span>Name</span>
+    <input type="text" name="name" value="<%= old.name || '' %>" placeholder="Reguler" maxlength="100" required />
+    <% if (formErrors.name) { %><small class="field-error"><%= formErrors.name %></small><% } %>
+  </label>
+
+  <label>
+    <span>Cost</span>
+    <input type="number" name="cost" value="<%= old.cost ?? 0 %>" min="0" step="100" required />
+    <% if (formErrors.cost) { %><small class="field-error"><%= formErrors.cost %></small><% } %>
+  </label>
+
+  <label>
+    <span>Estimated Days</span>
+    <input type="text" name="estimated_days" value="<%= old.estimated_days || '' %>" placeholder="2-4 hari" maxlength="50" />
+    <% if (formErrors.estimated_days) { %><small class="field-error"><%= formErrors.estimated_days %></small><% } %>
+  </label>
+
+  <label>
+    <span>Status</span>
+    <select name="status">
+      <option value="active" <%= old.status === 'active' ? 'selected' : '' %>>Active</option>
+      <option value="inactive" <%= old.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+    </select>
+    <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
+  </label>
+
+  <label>
+    <span>Sort Order</span>
+    <input type="number" name="sort_order" value="<%= old.sort_order ?? 0 %>" step="1" />
+  </label>
+
+  <label class="full-span">
+    <span>Description</span>
+    <textarea name="description" rows="4" maxlength="500" placeholder="Deskripsi singkat metode shipping"><%= old.description || '' %></textarea>
+    <% if (formErrors.description) { %><small class="field-error"><%= formErrors.description %></small><% } %>
+  </label>
+</div>

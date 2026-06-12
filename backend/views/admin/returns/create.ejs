@@ -1,0 +1,59 @@
+<%
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Create Return',
+  description: 'Create a manual return request from a shipped or completed order.'
+}) %>
+
+<section class="returns-page">
+  <section class="crud-panel form-panel">
+    <form method="POST" action="/admin/returns" class="crud-form">
+      <div class="form-grid">
+        <label>
+          <span>Order Code / Invoice / ID</span>
+          <input type="text" name="order_lookup" value="<%= old.order_lookup || '' %>" placeholder="INV-2026..." required />
+          <% if (formErrors.order_lookup) { %><small class="field-error"><%= formErrors.order_lookup %></small><% } %>
+        </label>
+
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <% returnStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= old.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+          <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
+        </label>
+
+        <label>
+          <span>Refund Amount</span>
+          <input type="number" name="refund_amount" value="<%= old.refund_amount ?? 0 %>" min="0" step="100" />
+          <% if (formErrors.refund_amount) { %><small class="field-error"><%= formErrors.refund_amount %></small><% } %>
+        </label>
+
+        <label class="full-span">
+          <span>Reason</span>
+          <textarea name="reason" rows="4" maxlength="1000" placeholder="Alasan return/refund" required><%= old.reason || '' %></textarea>
+          <% if (formErrors.reason) { %><small class="field-error"><%= formErrors.reason %></small><% } %>
+        </label>
+
+        <label class="full-span">
+          <span>Admin Note</span>
+          <textarea name="admin_note" rows="4" maxlength="1000" placeholder="Catatan internal admin"><%= old.admin_note || '' %></textarea>
+          <% if (formErrors.admin_note) { %><small class="field-error"><%= formErrors.admin_note %></small><% } %>
+        </label>
+      </div>
+
+      <p class="returns-note">MVP note: membuat return request tidak otomatis refund payment atau restock inventory.</p>
+
+      <div class="form-actions">
+        <a href="/admin/returns" class="crud-btn ghost">Cancel</a>
+        <button type="submit" class="crud-btn primary"><i class="ri-save-3-line"></i>Create Return</button>
+      </div>
+    </form>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

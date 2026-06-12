@@ -1,0 +1,18 @@
+<%- include('../partials/shell-start', {
+  heading: 'Edit Shipping',
+  description: 'Update checkout shipping method details.'
+}) %>
+
+<section class="shipping-page">
+  <section class="crud-panel form-panel">
+    <form method="POST" action="/admin/shipping/<%= method.id %>/update" class="crud-form">
+      <%- include('form', { old, formErrors }) %>
+      <div class="form-actions">
+        <a href="/admin/shipping" class="crud-btn ghost">Cancel</a>
+        <button type="submit" class="crud-btn primary"><i class="ri-save-3-line"></i>Save Changes</button>
+      </div>
+    </form>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

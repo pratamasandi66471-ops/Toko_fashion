@@ -1,5 +1,10 @@
 const { loginAsAdmin } = require('./helpers/auth.helper');
-const { closePool } = require('./helpers/db.helper');
+const { closePool, ensureTestReturnRequestsTable, ensureTestShippingMethods } = require('./helpers/db.helper');
+
+beforeAll(async () => {
+  await ensureTestShippingMethods();
+  await ensureTestReturnRequestsTable();
+});
 
 afterAll(async () => {
   await closePool();
@@ -13,6 +18,8 @@ describe('admin smoke pages', () => {
     '/admin/orders',
     '/admin/inventory',
     '/admin/payments',
+    '/admin/shipping',
+    '/admin/returns',
     '/admin/reports',
   ];
 

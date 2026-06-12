@@ -1,0 +1,96 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.status) qsBase.set('status', filters.status);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Returns / Refunds',
+  description: 'Manage return requests and refund review workflow.'
+}) %>
+
+<section class="returns-page">
+  <section class="crud-panel returns-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/returns" class="crud-filter-form returns-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Return code, invoice, customer" />
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <% returnStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/returns" class="crud-btn ghost">Reset</a>
+      </form>
+      <a href="/admin/returns/create" class="crud-btn primary"><i class="ri-arrow-go-back-line"></i>Create Return</a>
+    </div>
+
+    <% if (!returns || returns.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-arrow-go-back-line"></i>
+        <h2>Belum ada return request</h2>
+        <p>Return/refund request akan muncul setelah dibuat dari order yang eligible.</p>
+        <a href="/admin/returns/create" class="crud-btn primary">Create Return</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table returns-table">
+          <thead>
+            <tr>
+              <th>Return</th>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Refund</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% returns.forEach((item) => { %>
+              <tr>
+                <td data-label="Return">
+                  <strong><%= item.return_code %></strong>
+                  <small><%= item.reason ? item.reason.slice(0, 80) : '-' %></small>
+                </td>
+                <td data-label="Order">
+                  <strong><%= item.invoice_number || '-' %></strong>
+                  <small><%= item.order_code || '-' %></small>
+                  <small>Order: <%= titleCase(item.order_status) %></small>
+                </td>
+                <td data-label="Customer">
+                  <strong><%= item.customer_name || 'Unknown Customer' %></strong>
+                  <small><%= item.customer_email || '-' %></small>
+                </td>
+                <td data-label="Refund"><strong><%= formatRupiah(item.refund_amount) %></strong></td>
+                <td data-label="Status"><span class="return-badge return-<%= item.status %>"><%= titleCase(item.status) %></span></td>
+                <td data-label="Date"><%= formatDate(item.created_at) %></td>
+                <td data-label="Action">
+                  <a href="/admin/returns/<%= item.id %>" class="crud-btn tiny primary">Detail</a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/returns?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

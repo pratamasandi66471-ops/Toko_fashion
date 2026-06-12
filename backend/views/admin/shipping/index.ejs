@@ -1,0 +1,83 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Shipping Management',
+  description: 'Manage checkout shipping methods and delivery costs.'
+}) %>
+
+<section class="shipping-page">
+  <section class="crud-panel shipping-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/shipping" class="crud-filter-form shipping-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Code, name, description" />
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/shipping" class="crud-btn ghost">Reset</a>
+      </form>
+      <a href="/admin/shipping/create" class="crud-btn primary"><i class="ri-truck-line"></i>Add Shipping</a>
+    </div>
+
+    <% if (!methods || methods.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-truck-line"></i>
+        <h2>Belum ada metode shipping</h2>
+        <p>Buat metode shipping pertama untuk checkout S Fashion.</p>
+        <a href="/admin/shipping/create" class="crud-btn primary">Create Shipping</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table shipping-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Cost</th>
+              <th>Estimate</th>
+              <th>Sort</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% methods.forEach((method) => { %>
+              <tr>
+                <td data-label="Method">
+                  <strong><%= method.name %></strong>
+                  <small><%= method.code %></small>
+                  <% if (method.description) { %><small><%= method.description %></small><% } %>
+                </td>
+                <td data-label="Cost"><strong><%= formatRupiah(method.cost) %></strong></td>
+                <td data-label="Estimate"><%= method.estimated_days || '-' %></td>
+                <td data-label="Sort"><%= method.sort_order %></td>
+                <td data-label="Status"><span class="status-badge status-<%= method.status %>"><%= method.status %></span></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <a href="/admin/shipping/<%= method.id %>/edit" class="crud-btn tiny ghost"><i class="ri-edit-line"></i>Edit</a>
+                    <form method="POST" action="/admin/shipping/<%= method.id %>/toggle-status">
+                      <button type="submit" class="crud-btn tiny secondary">
+                        <i class="ri-refresh-line"></i><%= method.status === 'active' ? 'Deactivate' : 'Activate' %>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

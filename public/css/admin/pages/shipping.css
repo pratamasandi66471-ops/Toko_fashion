@@ -1,0 +1,25 @@
+@import url('/css/admin/pages/categories.css');
+
+.shipping-page {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.shipping-filter-form {
+  grid-template-columns: minmax(220px, 1.3fr) minmax(160px, .7fr) auto auto;
+}
+
+.shipping-table td strong {
+  color: var(--sf-navy);
+}
+
+.shipping-table td[data-label="Cost"] strong {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .shipping-filter-form {
+    grid-template-columns: 1fr;
+  }
+}

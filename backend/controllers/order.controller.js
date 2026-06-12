@@ -1,7 +1,6 @@
 const orderModel = require('../models/order.model');
 const emailService = require('../services/email.service');
 
-const SHIPPING_OPTIONS = Object.values(orderModel.SHIPPING_METHODS);
 const PAYMENT_OPTIONS = Object.values(orderModel.PAYMENT_METHODS);
 
 function toRupiah(value) {
@@ -22,21 +21,22 @@ async function renderCheckout(req, res, payload = {}) {
   }
 
   const addresses = await orderModel.listAddressesByUser(userId);
+  const shippingOptions = await orderModel.listShippingOptions();
   const old = payload.old || req.session.checkoutOld || {};
   if (req.session.checkoutOld) {
     delete req.session.checkoutOld;
   }
-  const selectedShipping = old.shipping_method || 'regular';
+  const selectedShipping = old.shipping_method || shippingOptions[0]?.key || 'regular';
   const selectedPayment = old.payment_method || 'bank_transfer';
 
-  const shippingCost = orderModel.SHIPPING_METHODS[selectedShipping]?.cost || 0;
+  const shippingCost = shippingOptions.find((method) => method.key === selectedShipping)?.cost || 0;
   const totalAmount = cart.subtotal + shippingCost;
 
   return res.render('pages/checkout', {
     pageTitle: 'Checkout',
     cart,
     addresses,
-    shippingOptions: SHIPPING_OPTIONS,
+    shippingOptions,
     paymentOptions: PAYMENT_OPTIONS,
     selectedShipping,
     selectedPayment,
@@ -153,6 +153,14 @@ async function placeOrder(req, res) {
         voucher_code: voucherCode,
       };
       return res.redirect('/checkout');
+    }
+
+    if (error.code === 'INVALID_CHECKOUT_OPTION') {
+      res.status(422);
+      return renderCheckout(req, res, {
+        formErrors: { shipping_method: error.message },
+        old: req.body,
+      });
     }
 
     throw error;
