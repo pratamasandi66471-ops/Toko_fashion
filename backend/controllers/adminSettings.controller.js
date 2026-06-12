@@ -24,13 +24,13 @@ function getBaseRenderData() {
 
 function normalizeSettingsPayload(body = {}) {
   return {
-    store_name: String(body.store_name || '').trim(),
-    store_email: String(body.store_email || '').trim(),
-    store_phone: String(body.store_phone || '').trim(),
-    store_address: String(body.store_address || '').trim(),
-    instagram_url: String(body.instagram_url || '').trim(),
-    facebook_url: String(body.facebook_url || '').trim(),
-    tiktok_url: String(body.tiktok_url || '').trim(),
+    storeName: String(body.store_name || '').trim(),
+    storeEmail: String(body.store_email || '').trim(),
+    storePhone: String(body.store_phone || '').trim(),
+    storeAddress: String(body.store_address || '').trim(),
+    instagramUrl: String(body.instagram_url || '').trim(),
+    facebookUrl: String(body.facebook_url || '').trim(),
+    tiktokUrl: String(body.tiktok_url || '').trim(),
   };
 }
 
@@ -50,36 +50,36 @@ function isValidHttpUrl(value) {
 function validateSettingsPayload(payload) {
   const errors = [];
 
-  if (!payload.store_name) {
-    errors.push('Nama toko wajib diisi.');
-  } else if (payload.store_name.length < 2) {
-    errors.push('Nama toko minimal 2 karakter.');
-  } else if (payload.store_name.length > 100) {
-    errors.push('Nama toko maksimal 100 karakter.');
+  if (!payload.storeName) {
+    errors.push('Store name wajib diisi.');
+  } else if (payload.storeName.length < 2) {
+    errors.push('Store name minimal 2 karakter.');
+  } else if (payload.storeName.length > 100) {
+    errors.push('Store name maksimal 100 karakter.');
   }
 
-  if (payload.store_email && !isValidEmail(payload.store_email)) {
-    errors.push('Email toko tidak valid.');
+  if (payload.storeEmail && !isValidEmail(payload.storeEmail)) {
+    errors.push('Format store email tidak valid.');
   }
 
-  if (payload.store_phone && payload.store_phone.length > 30) {
+  if (payload.storePhone && payload.storePhone.length > 30) {
     errors.push('Nomor telepon maksimal 30 karakter.');
   }
 
-  if (payload.store_phone && !/^[0-9+\-\s()]+$/.test(payload.store_phone)) {
-    errors.push('Nomor telepon hanya boleh berisi angka, spasi, +, -, dan tanda kurung.');
+  if (payload.storePhone && !/^[0-9+\-\s]+$/.test(payload.storePhone)) {
+    errors.push('Nomor telepon hanya boleh berisi angka, spasi, +, atau -.');
   }
 
-  if (payload.store_address.length > 500) {
+  if (payload.storeAddress && payload.storeAddress.length > 500) {
     errors.push('Alamat toko maksimal 500 karakter.');
   }
 
   [
-    ['instagram_url', 'Instagram URL'],
-    ['facebook_url', 'Facebook URL'],
-    ['tiktok_url', 'TikTok URL'],
-  ].forEach(([key, label]) => {
-    if (payload[key] && !isValidHttpUrl(payload[key])) {
+    ['Instagram URL', payload.instagramUrl],
+    ['Facebook URL', payload.facebookUrl],
+    ['TikTok URL', payload.tiktokUrl],
+  ].forEach(([label, value]) => {
+    if (value && !isValidHttpUrl(value)) {
       errors.push(`${label} harus diawali http:// atau https://.`);
     }
   });
@@ -89,13 +89,13 @@ function validateSettingsPayload(payload) {
 
 function mapPayloadToSettings(payload) {
   return {
-    'store.name': payload.store_name,
-    'store.email': payload.store_email,
-    'store.phone': payload.store_phone,
-    'store.address': payload.store_address,
-    'social.instagram': payload.instagram_url,
-    'social.facebook': payload.facebook_url,
-    'social.tiktok': payload.tiktok_url,
+    'store.name': payload.storeName,
+    'store.email': payload.storeEmail,
+    'store.phone': payload.storePhone,
+    'store.address': payload.storeAddress,
+    'social.instagram': payload.instagramUrl,
+    'social.facebook': payload.facebookUrl,
+    'social.tiktok': payload.tiktokUrl,
   };
 }
 
