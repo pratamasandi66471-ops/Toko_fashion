@@ -1,0 +1,87 @@
+<%
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const valueLabel = voucher.type === 'percentage' ? 'Discount Percentage' : 'Discount Amount';
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Create Coupon',
+  description: 'Create a new discount voucher for admin-managed campaigns.'
+}) %>
+
+<section class="crud-panel form-panel voucher-form-panel">
+  <a href="/admin/coupons" class="back-link"><i class="ri-arrow-left-line"></i>Back to Coupons</a>
+  <form method="POST" action="/admin/coupons" class="crud-form voucher-form" novalidate>
+    <div class="form-grid">
+      <label>
+        <span>Code</span>
+        <input type="text" name="code" value="<%= voucher.code || '' %>" placeholder="WELCOME25" required />
+        <small class="field-help">Uppercase automatically. Spaces are not allowed.</small>
+        <% if (formErrors.code) { %><small class="field-error"><%= formErrors.code %></small><% } %>
+      </label>
+
+      <label>
+        <span>Type</span>
+        <select name="type">
+          <% typeOptions.forEach((type) => { %>
+            <option value="<%= type %>" <%= (voucher.type || 'fixed') === type ? 'selected' : '' %>><%= titleCase(type) %></option>
+          <% }); %>
+        </select>
+        <% if (formErrors.type) { %><small class="field-error"><%= formErrors.type %></small><% } %>
+      </label>
+
+      <label>
+        <span><%= valueLabel %></span>
+        <input type="number" name="value" value="<%= voucher.value ?? '' %>" min="0" step="0.01" required />
+        <% if (formErrors.value) { %><small class="field-error"><%= formErrors.value %></small><% } %>
+      </label>
+
+      <label>
+        <span>Max Discount</span>
+        <input type="number" name="max_discount" value="<%= voucher.max_discount ?? '' %>" min="0" step="0.01" />
+        <small class="field-help">Percentage voucher should use max discount to prevent excessive discount.</small>
+        <% if (formErrors.max_discount) { %><small class="field-error"><%= formErrors.max_discount %></small><% } %>
+      </label>
+
+      <label>
+        <span>Min Purchase</span>
+        <input type="number" name="min_purchase" value="<%= voucher.min_purchase ?? 0 %>" min="0" step="0.01" />
+        <% if (formErrors.min_purchase) { %><small class="field-error"><%= formErrors.min_purchase %></small><% } %>
+      </label>
+
+      <label>
+        <span>Usage Limit</span>
+        <input type="number" name="usage_limit" value="<%= voucher.usage_limit ?? '' %>" min="1" step="1" placeholder="Leave blank for unlimited" />
+        <% if (formErrors.usage_limit) { %><small class="field-error"><%= formErrors.usage_limit %></small><% } %>
+      </label>
+
+      <label>
+        <span>Start Date</span>
+        <input type="datetime-local" name="start_date" value="<%= voucher.start_date || '' %>" />
+        <% if (formErrors.start_date) { %><small class="field-error"><%= formErrors.start_date %></small><% } %>
+      </label>
+
+      <label>
+        <span>End Date</span>
+        <input type="datetime-local" name="end_date" value="<%= voucher.end_date || '' %>" />
+        <% if (formErrors.end_date) { %><small class="field-error"><%= formErrors.end_date %></small><% } %>
+      </label>
+
+      <label>
+        <span>Status</span>
+        <select name="status">
+          <% statusOptions.forEach((status) => { %>
+            <option value="<%= status %>" <%= (voucher.status || 'active') === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+          <% }); %>
+        </select>
+        <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <a href="/admin/coupons" class="crud-btn ghost">Cancel</a>
+      <button type="submit" class="crud-btn primary">Create Coupon</button>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/shell-end') %>

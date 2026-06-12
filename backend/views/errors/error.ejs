@@ -1,0 +1,113 @@
+<section class="sf-error-page">
+    <style>
+        .sf-error-page {
+            min-height: 62vh;
+            width: min(780px, calc(100% - 32px));
+            margin: 48px auto;
+            display: grid;
+            place-items: center;
+        }
+
+        .sf-error-card {
+            width: 100%;
+            padding: clamp(28px, 6vw, 54px);
+            border: 1px solid var(--sf-border, rgba(28, 21, 49, 0.12));
+            border-radius: var(--sf-radius-lg, 24px);
+            background: var(--sf-white, #ffffff);
+            box-shadow: var(--sf-shadow-sm, 0 14px 34px rgba(28, 21, 49, 0.08));
+            text-align: center;
+        }
+
+        .sf-error-code {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 82px;
+            height: 82px;
+            margin-bottom: 18px;
+            border-radius: 999px;
+            background: var(--sf-pink-soft, #f4e1e1);
+            color: var(--sf-danger, #d94f5c);
+            font-size: 26px;
+            font-weight: 900;
+        }
+
+        .sf-error-card h1 {
+            margin: 0 0 12px;
+            color: var(--sf-navy, #1c1531);
+            font-size: clamp(30px, 5vw, 44px);
+            line-height: 1.08;
+        }
+
+        .sf-error-card p {
+            margin: 0 auto 24px;
+            max-width: 540px;
+            color: var(--sf-muted, #66708a);
+            line-height: 1.7;
+        }
+
+        .sf-error-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .sf-error-actions a {
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: var(--sf-radius-sm, 12px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .sf-error-primary {
+            background: var(--sf-navy, #1c1531);
+            color: var(--sf-white, #ffffff);
+        }
+
+        .sf-error-secondary {
+            border: 1px solid var(--sf-border, rgba(28, 21, 49, 0.12));
+            color: var(--sf-navy, #1c1531);
+            background: var(--sf-white, #ffffff);
+        }
+
+        .sf-error-stack {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: var(--sf-radius-sm, 12px);
+            background: #111827;
+            color: #f9fafb;
+            text-align: left;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+    </style>
+
+    <article class="sf-error-card">
+        <span class="sf-error-code"><%= statusCode || 500 %></span>
+        <h1>Terjadi kesalahan</h1>
+        <p><%= message || 'Maaf, ada sesuatu yang belum berjalan dengan benar. Silakan coba lagi sebentar lagi.' %></p>
+
+        <div class="sf-error-actions">
+            <a class="sf-error-primary" href="<%= backUrl || '/' %>">
+                <i class="ri-arrow-left-line"></i>
+                Kembali
+            </a>
+            <a class="sf-error-secondary" href="/">
+                <i class="ri-home-5-line"></i>
+                Home
+            </a>
+        </div>
+
+        <% if (stack) { %>
+            <pre class="sf-error-stack"><%= stack %></pre>
+        <% } %>
+    </article>
+</section>

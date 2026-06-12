@@ -1,0 +1,45 @@
+<% const errors = typeof formErrors !== 'undefined' ? formErrors : {}; %>
+<% const oldData = typeof old !== 'undefined' ? old : {}; %>
+
+<section class="auth-card">
+    <div class="auth-card-header">
+        <h1>Buat Akun</h1>
+        <p>Gabung ke S Fashion dan mulai belanja fashion premium favoritmu.</p>
+    </div>
+
+    <% if (errors.general) { %>
+        <p class="auth-error-global"><%= errors.general %></p>
+    <% } %>
+
+    <form action="/register" method="POST" class="auth-form" novalidate>
+        <label for="name">Nama</label>
+        <input id="name" name="name" type="text" placeholder="Nama lengkap" value="<%= oldData.name || '' %>" required />
+        <% if (errors.name) { %><small class="auth-field-error"><%= errors.name %></small><% } %>
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="you@example.com" value="<%= oldData.email || '' %>" required />
+        <% if (errors.email) { %><small class="auth-field-error"><%= errors.email %></small><% } %>
+
+        <label for="phone">Nomor Telepon</label>
+        <input id="phone" name="phone" type="text" placeholder="08xxxxxxxxxx" value="<%= oldData.phone || '' %>" />
+        <% if (errors.phone) { %><small class="auth-field-error"><%= errors.phone %></small><% } %>
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="Minimal 8 karakter" required />
+        <% if (errors.password) { %><small class="auth-field-error"><%= errors.password %></small><% } %>
+
+        <label for="confirm_password">Konfirmasi Password</label>
+        <input id="confirm_password" name="confirm_password" type="password" placeholder="Ulangi password" required />
+        <% if (errors.confirm_password) { %><small class="auth-field-error"><%= errors.confirm_password %></small><% } %>
+
+        <label for="terms" class="auth-terms">
+            <input id="terms" name="terms" type="checkbox" value="on" <%= oldData.terms ? 'checked' : '' %> />
+            <span>Saya menyetujui syarat dan ketentuan.</span>
+        </label>
+        <% if (errors.terms) { %><small class="auth-field-error"><%= errors.terms %></small><% } %>
+
+        <button type="submit">Daftar</button>
+    </form>
+
+    <p class="auth-switch">Sudah punya akun? <a href="/login">Login</a></p>
+</section>

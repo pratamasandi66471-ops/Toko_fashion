@@ -1,0 +1,193 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatNumber = (value) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const statusRows = ordersByStatus || [];
+const topCustomers = customersReport.topCustomersBySpending || [];
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Reports',
+  description: 'Analyze store performance.'
+}) %>
+
+<section class="reports-page">
+  <section class="crud-panel reports-filter-panel">
+    <form method="GET" action="/admin/reports" class="crud-filter-form reports-filter-form">
+      <label>
+        <span>Date From</span>
+        <input type="date" name="date_from" value="<%= filters.dateFrom %>" />
+      </label>
+      <label>
+        <span>Date To</span>
+        <input type="date" name="date_to" value="<%= filters.dateTo %>" />
+      </label>
+      <button type="submit" class="crud-btn secondary"><i class="ri-filter-3-line"></i>Apply</button>
+      <a href="/admin/reports" class="crud-btn ghost">Reset</a>
+    </form>
+  </section>
+
+  <section class="report-section">
+    <div class="report-section-head">
+      <div>
+        <h2>Sales Summary</h2>
+        <p>Revenue uses paid orders only.</p>
+      </div>
+    </div>
+    <div class="report-summary-grid">
+      <article class="report-summary-card">
+        <span><i class="ri-money-dollar-circle-line"></i></span>
+        <div><p>Total Revenue</p><strong><%= formatRupiah(salesSummary.totalRevenue) %></strong></div>
+      </article>
+      <article class="report-summary-card">
+        <span><i class="ri-shopping-bag-3-line"></i></span>
+        <div><p>Paid Orders</p><strong><%= formatNumber(salesSummary.paidOrders) %></strong></div>
+      </article>
+      <article class="report-summary-card">
+        <span><i class="ri-bar-chart-line"></i></span>
+        <div><p>Average Order Value</p><strong><%= formatRupiah(salesSummary.averageOrderValue) %></strong></div>
+      </article>
+      <article class="report-summary-card">
+        <span><i class="ri-coupon-2-line"></i></span>
+        <div><p>Total Discount</p><strong><%= formatRupiah(salesSummary.totalDiscount) %></strong></div>
+      </article>
+      <article class="report-summary-card">
+        <span><i class="ri-truck-line"></i></span>
+        <div><p>Total Shipping</p><strong><%= formatRupiah(salesSummary.totalShipping) %></strong></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="crud-panel report-panel">
+    <div class="report-section-head">
+      <div>
+        <h2>Revenue by Date</h2>
+        <p>Daily paid revenue and paid order count.</p>
+      </div>
+    </div>
+    <% if (!revenueByDate || revenueByDate.length === 0) { %>
+      <article class="report-empty">Tidak ada revenue paid pada range tanggal ini.</article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table report-table">
+          <thead><tr><th>Date</th><th>Revenue</th><th>Order Count</th></tr></thead>
+          <tbody>
+            <% revenueByDate.forEach((row) => { %>
+              <tr>
+                <td data-label="Date"><%= formatDate(row.report_date) %></td>
+                <td data-label="Revenue"><strong><%= formatRupiah(row.revenue) %></strong></td>
+                <td data-label="Order Count"><%= formatNumber(row.order_count) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="report-section">
+    <div class="report-section-head">
+      <div>
+        <h2>Orders Summary</h2>
+        <p>Operational status uses <code>orders.status</code>.</p>
+      </div>
+    </div>
+    <div class="report-status-grid">
+      <article class="report-mini-card"><p>Total Orders</p><strong><%= formatNumber(ordersSummary.totalOrders) %></strong></article>
+      <article class="report-mini-card order-pending"><p>Pending</p><strong><%= formatNumber(ordersSummary.pendingOrders) %></strong></article>
+      <article class="report-mini-card order-processing"><p>Processing</p><strong><%= formatNumber(ordersSummary.processingOrders) %></strong></article>
+      <article class="report-mini-card order-shipped"><p>Shipped</p><strong><%= formatNumber(ordersSummary.shippedOrders) %></strong></article>
+      <article class="report-mini-card order-completed"><p>Completed</p><strong><%= formatNumber(ordersSummary.completedOrders) %></strong></article>
+      <article class="report-mini-card order-cancelled"><p>Cancelled</p><strong><%= formatNumber(ordersSummary.cancelledOrders) %></strong></article>
+      <article class="report-mini-card payment-unpaid"><p>Unpaid</p><strong><%= formatNumber(ordersSummary.unpaidOrders) %></strong></article>
+      <article class="report-mini-card payment-paid"><p>Paid</p><strong><%= formatNumber(ordersSummary.paidOrders) %></strong></article>
+      <article class="report-mini-card payment-failed"><p>Failed Payments</p><strong><%= formatNumber(ordersSummary.failedPayments) %></strong></article>
+    </div>
+    <% if (statusRows.length > 0) { %>
+      <div class="status-chip-row">
+        <% statusRows.forEach((row) => { %>
+          <span class="report-badge order-<%= row.status %>"><%= titleCase(row.status) %>: <%= formatNumber(row.total) %></span>
+        <% }); %>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="crud-panel report-panel">
+    <div class="report-section-head">
+      <div>
+        <h2>Best Selling Products</h2>
+        <p>Paid order item revenue, sorted by sold quantity.</p>
+      </div>
+    </div>
+    <% if (!productsReport || productsReport.length === 0) { %>
+      <article class="report-empty">Belum ada paid product sales pada range tanggal ini.</article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table report-table">
+          <thead><tr><th>Product</th><th>SKU</th><th>Sold Qty</th><th>Revenue</th><th>Order Count</th></tr></thead>
+          <tbody>
+            <% productsReport.forEach((product) => { %>
+              <tr>
+                <td data-label="Product"><strong><%= product.product_name || 'Unknown Product' %></strong></td>
+                <td data-label="SKU"><%= product.sku || '-' %></td>
+                <td data-label="Sold Qty"><%= formatNumber(product.sold_qty) %></td>
+                <td data-label="Revenue"><strong><%= formatRupiah(product.revenue) %></strong></td>
+                <td data-label="Order Count"><%= formatNumber(product.order_count) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="report-section">
+    <div class="report-section-head">
+      <div>
+        <h2>Inventory Snapshot</h2>
+        <p>Stock source is <code>product_variants.stock</code>.</p>
+      </div>
+    </div>
+    <div class="report-summary-grid inventory-grid">
+      <article class="report-summary-card"><span><i class="ri-stack-line"></i></span><div><p>Total Variants</p><strong><%= formatNumber(inventoryReport.totalVariants) %></strong></div></article>
+      <article class="report-summary-card"><span><i class="ri-archive-line"></i></span><div><p>Total Stock</p><strong><%= formatNumber(inventoryReport.totalStock) %></strong></div></article>
+      <article class="report-summary-card is-low"><span><i class="ri-error-warning-line"></i></span><div><p>Low Stock</p><strong><%= formatNumber(inventoryReport.lowStockVariants) %></strong><small><%= lowStockThreshold %> or fewer</small></div></article>
+      <article class="report-summary-card is-out"><span><i class="ri-close-circle-line"></i></span><div><p>Out of Stock</p><strong><%= formatNumber(inventoryReport.outOfStockVariants) %></strong></div></article>
+    </div>
+  </section>
+
+  <section class="crud-panel report-panel">
+    <div class="report-section-head">
+      <div>
+        <h2>Top Customers</h2>
+        <p>Ranked by paid spending in the selected range.</p>
+      </div>
+      <div class="customer-totals">
+        <span>Total Customers: <strong><%= formatNumber(customersReport.totalCustomers) %></strong></span>
+        <span>New Customers: <strong><%= formatNumber(customersReport.newCustomers) %></strong></span>
+      </div>
+    </div>
+    <% if (!topCustomers || topCustomers.length === 0) { %>
+      <article class="report-empty">Belum ada customer dengan paid order pada range tanggal ini.</article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table report-table">
+          <thead><tr><th>Customer</th><th>Email</th><th>Total Orders</th><th>Total Spent</th></tr></thead>
+          <tbody>
+            <% topCustomers.forEach((customer) => { %>
+              <tr>
+                <td data-label="Customer"><strong><%= customer.name || 'Unknown Customer' %></strong></td>
+                <td data-label="Email"><%= customer.email || '-' %></td>
+                <td data-label="Total Orders"><%= formatNumber(customer.total_orders) %></td>
+                <td data-label="Total Spent"><strong><%= formatRupiah(customer.total_spent) %></strong></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

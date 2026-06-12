@@ -1,0 +1,219 @@
+@import url('/css/admin/pages/categories.css');
+
+:root {
+  --inventory-soft-pink: #f4e1e1;
+  --inventory-accent-pink: #e991a8;
+  --inventory-sky-blue: #63a3bc;
+  --inventory-denim-blue: #5b7daf;
+  --inventory-navy: #1c1531;
+  --inventory-white: #ffffff;
+  --inventory-muted: #68728a;
+  --inventory-border: #e8edf6;
+}
+
+.inventory-page {
+  display: grid;
+  gap: 18px;
+}
+
+.inventory-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.inventory-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--inventory-border);
+  border-radius: 20px;
+  padding: 18px;
+  background: var(--inventory-white);
+  box-shadow: 0 16px 36px rgba(28, 21, 49, 0.06);
+}
+
+.inventory-summary-card > span {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: #eef4ff;
+  color: var(--inventory-denim-blue);
+  font-size: 23px;
+}
+
+.inventory-summary-card.is-low > span {
+  background: #fff2d8;
+  color: #8a5a12;
+}
+
+.inventory-summary-card.is-out > span {
+  background: #ffe8e6;
+  color: #a33a35;
+}
+
+.inventory-summary-card p {
+  margin: 0 0 5px;
+  color: var(--inventory-muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.inventory-summary-card strong {
+  color: var(--inventory-navy);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.inventory-filter-form {
+  grid-template-columns: 1.35fr 1fr .9fr .9fr auto auto;
+  width: 100%;
+}
+
+.inventory-table td {
+  vertical-align: middle;
+}
+
+.inventory-product-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 270px;
+}
+
+.inventory-product-cell img {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--inventory-soft-pink);
+}
+
+.inventory-product-cell a {
+  display: inline-flex;
+  margin-top: 6px;
+  color: var(--inventory-denim-blue);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.color-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.color-chip i {
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(28, 21, 49, .18);
+  border-radius: 999px;
+  background: var(--chip-color);
+}
+
+.inventory-badge {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.stock-badge-available,
+.status-active {
+  color: #176b43;
+  background: #e5f7ee;
+}
+
+.stock-badge-low {
+  color: #8a5a12;
+  background: #fff2d8;
+}
+
+.stock-badge-out,
+.status-inactive {
+  color: #a33a35;
+  background: #ffe8e6;
+}
+
+.stock-number {
+  font-size: 18px;
+}
+
+.stock-available {
+  color: #176b43;
+}
+
+.stock-low {
+  color: #8a5a12;
+}
+
+.stock-out {
+  color: #a33a35;
+}
+
+.inventory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.stock-update-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.stock-update-form input {
+  width: 82px;
+  border: 1px solid #dfe6f2;
+  border-radius: 10px;
+  padding: 8px 9px;
+  color: var(--inventory-navy);
+  font: inherit;
+  font-weight: 800;
+}
+
+.crud-btn:focus-visible,
+.crud-pagination a:focus-visible,
+.inventory-product-cell a:focus-visible,
+.stock-update-form input:focus-visible,
+.crud-filter-form input:focus-visible,
+.crud-filter-form select:focus-visible {
+  outline: 3px solid rgba(91, 125, 175, .35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1180px) {
+  .inventory-summary-grid,
+  .inventory-filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .inventory-summary-grid,
+  .inventory-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-actions,
+  .stock-update-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stock-update-form input {
+    width: 100%;
+  }
+}

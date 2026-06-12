@@ -1,0 +1,40 @@
+<div class="variant-row" data-variant-row>
+  <label>
+    <span>Size</span>
+    <input name="variants[<%= index %>][size]" value="<%= variant.size || '' %>" placeholder="M" />
+    <% if (errors.size) { %><small class="field-error"><%= errors.size %></small><% } %>
+  </label>
+  <label>
+    <span>Color</span>
+    <input name="variants[<%= index %>][color]" value="<%= variant.color || '' %>" placeholder="Soft Pink" />
+    <% if (errors.color) { %><small class="field-error"><%= errors.color %></small><% } %>
+  </label>
+  <label>
+    <span>Color Code</span>
+    <input name="variants[<%= index %>][color_code]" value="<%= variant.colorCode || variant.color_code || '' %>" placeholder="#F4E1E1" />
+  </label>
+  <label>
+    <span>Stock</span>
+    <input type="number" min="0" name="variants[<%= index %>][stock]" value="<%= Number.isFinite(Number(variant.stock)) ? variant.stock : '' %>" placeholder="10" />
+    <% if (errors.stock) { %><small class="field-error"><%= errors.stock %></small><% } %>
+  </label>
+  <label>
+    <span>Price Override</span>
+    <input type="number" min="0" step="1000" name="variants[<%= index %>][price_override]" value="<%= variant.priceOverride || variant.price_override || '' %>" />
+    <% if (errors.price_override) { %><small class="field-error"><%= errors.price_override %></small><% } %>
+  </label>
+  <label>
+    <span>Variant SKU</span>
+    <input name="variants[<%= index %>][variant_sku]" value="<%= variant.variantSku || variant.variant_sku || '' %>" placeholder="SFD-001-PNK-M" />
+    <% if (errors.variant_sku) { %><small class="field-error"><%= errors.variant_sku %></small><% } %>
+  </label>
+  <label>
+    <span>Status</span>
+    <select name="variants[<%= index %>][status]">
+      <option value="active" <%= (variant.status || 'active') === 'active' ? 'selected' : '' %>>Active</option>
+      <option value="inactive" <%= variant.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+    </select>
+  </label>
+  <button type="button" class="crud-btn tiny ghost remove-variant-row">Remove</button>
+  <% if (errors.general) { %><small class="field-error variant-general"><%= errors.general %></small><% } %>
+</div>

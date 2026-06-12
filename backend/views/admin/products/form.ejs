@@ -1,0 +1,62 @@
+<div class="form-grid product-form-grid">
+  <label>
+    <span>Name</span>
+    <input type="text" name="name" value="<%= old.name || '' %>" placeholder="Floral Midi Dress" required />
+    <% if (formErrors.name) { %><small class="field-error"><%= formErrors.name %></small><% } %>
+  </label>
+
+  <label>
+    <span>Slug</span>
+    <input type="text" name="slug" value="<%= old.slug || '' %>" placeholder="Auto generated if empty" />
+    <% if (formErrors.slug) { %><small class="field-error"><%= formErrors.slug %></small><% } %>
+  </label>
+
+  <label>
+    <span>SKU</span>
+    <input type="text" name="sku" value="<%= old.sku || '' %>" placeholder="SFD-001" required />
+    <% if (formErrors.sku) { %><small class="field-error"><%= formErrors.sku %></small><% } %>
+  </label>
+
+  <label>
+    <span>Category</span>
+    <select name="category_id" required>
+      <option value="">Select category</option>
+      <% categories.forEach((category) => { const selectedId = old.category_id || old.categoryId; %>
+        <option value="<%= category.id %>" <%= Number(selectedId) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option>
+      <% }); %>
+    </select>
+    <% if (formErrors.category_id) { %><small class="field-error"><%= formErrors.category_id %></small><% } %>
+  </label>
+
+  <label>
+    <span>Price</span>
+    <input type="number" min="0" step="1000" name="price" value="<%= old.price || '' %>" required />
+    <% if (formErrors.price) { %><small class="field-error"><%= formErrors.price %></small><% } %>
+  </label>
+
+  <label>
+    <span>Discount Price</span>
+    <input type="number" min="0" step="1000" name="discount_price" value="<%= old.discount_price || old.discountPrice || '' %>" />
+    <% if (formErrors.discount_price) { %><small class="field-error"><%= formErrors.discount_price %></small><% } %>
+  </label>
+
+  <label>
+    <span>Status</span>
+    <select name="status">
+      <option value="active" <%= old.status === 'active' ? 'selected' : '' %>>Active</option>
+      <option value="draft" <%= old.status === 'draft' ? 'selected' : '' %>>Draft</option>
+      <option value="inactive" <%= old.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+    </select>
+    <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
+  </label>
+
+  <label class="check-card">
+    <input type="checkbox" name="is_featured" <%= old.is_featured || old.isFeatured ? 'checked' : '' %> />
+    <span>Featured product</span>
+  </label>
+
+  <label class="full-span">
+    <span>Description</span>
+    <textarea name="description" rows="5" placeholder="Product description"><%= old.description || '' %></textarea>
+  </label>
+</div>

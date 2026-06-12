@@ -1,0 +1,102 @@
+/* Shared admin components. Loaded after admin-dashboard.css during the CSS split. */
+
+.admin-kpi-card,
+.admin-chart-card,
+.admin-panel {
+  min-width: 0;
+}
+
+.panel-row {
+  min-width: 0;
+  border-color: var(--admin-border);
+  background: var(--admin-surface);
+}
+
+.panel-row:hover {
+  border-color: rgba(233, 145, 168, .38);
+  background: var(--sf-pink-soft);
+}
+
+.panel-main,
+.panel-main strong,
+.panel-main small,
+.panel-sub {
+  min-width: 0;
+}
+
+.admin-panel .badge,
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.badge-pending,
+.admin-panel .badge-pending {
+  background: rgba(138, 90, 18, .12);
+  color: var(--sf-warning);
+}
+
+.badge-processing,
+.admin-panel .badge-processing {
+  background: rgba(91, 125, 175, .12);
+  color: var(--sf-blue-denim);
+}
+
+.badge-shipped,
+.admin-panel .badge-shipped {
+  background: rgba(99, 163, 188, .14);
+  color: var(--sf-blue-sky);
+}
+
+.badge-completed,
+.admin-panel .badge-completed {
+  background: rgba(23, 107, 67, .12);
+  color: var(--sf-success);
+}
+
+.badge-cancelled,
+.admin-panel .badge-cancelled {
+  background: rgba(163, 58, 53, .12);
+  color: var(--sf-danger);
+}
+
+.range-switch button {
+  border-color: var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--sf-muted);
+}
+
+.range-switch button.is-active {
+  border-color: rgba(233, 145, 168, .38);
+  background: var(--sf-pink-soft);
+  color: var(--sf-navy);
+}
+
+.flash-group {
+  margin-bottom: 12px;
+}
+
+.flash-message {
+  margin: 0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.flash-success {
+  background: #e7f7ef;
+  color: #177245;
+}
+
+.flash-error {
+  background: #ffe8ef;
+  color: #b42050;
+}

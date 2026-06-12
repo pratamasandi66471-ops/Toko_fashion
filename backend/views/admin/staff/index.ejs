@@ -1,0 +1,90 @@
+<%
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.status) qsBase.set('status', filters.status);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Staff Management',
+  description: 'Kelola akun operasional staff tanpa menyentuh akun admin.'
+}) %>
+
+<section class="user-management-page">
+  <section class="crud-panel user-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/staff" class="crud-filter-form user-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Name, email, phone" />
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <% allowedStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/staff" class="crud-btn ghost">Reset</a>
+      </form>
+      <a href="/admin/staff/create" class="crud-btn primary"><i class="ri-user-add-line"></i>Add Staff</a>
+    </div>
+
+    <% if (!staff || staff.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-team-line"></i>
+        <h2>Staff belum tersedia</h2>
+        <p>Buat akun staff untuk membantu workflow operasional.</p>
+        <a href="/admin/staff/create" class="crud-btn primary">Create Staff</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table users-table">
+          <thead>
+            <tr>
+              <th>Staff</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% staff.forEach((member) => { %>
+              <tr>
+                <td data-label="Staff">
+                  <strong><%= member.name %></strong>
+                  <small><%= member.email %></small>
+                </td>
+                <td data-label="Phone"><%= member.phone || '-' %></td>
+                <td data-label="Status"><span class="user-badge status-<%= member.status %>"><%= titleCase(member.status) %></span></td>
+                <td data-label="Created"><%= formatDate(member.created_at) %></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <a href="/admin/staff/<%= member.id %>/edit" class="crud-btn tiny primary">Edit</a>
+                    <form method="POST" action="/admin/staff/<%= member.id %>/status" class="inline-status-form">
+                      <input type="hidden" name="status" value="<%= member.status === 'active' ? 'inactive' : 'active' %>" />
+                      <button type="submit" class="crud-btn tiny ghost"><%= member.status === 'active' ? 'Deactivate' : 'Activate' %></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/staff?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

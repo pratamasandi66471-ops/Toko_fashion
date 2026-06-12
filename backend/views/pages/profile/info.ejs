@@ -1,0 +1,36 @@
+<%- include('_shell-start', {
+  heading: 'Personal Info',
+  subtitle: 'Perbarui nama dan nomor telepon yang digunakan untuk order kamu.'
+}) %>
+
+<%
+const customer = profile || {};
+const pErrors = profileErrors || {};
+const profileOldData = profileOld || {};
+%>
+
+<section class="profile-card profile-narrow-card">
+  <div class="profile-card-head">
+    <div><span class="profile-card-label">Personal Info</span><h2>Edit Account Details</h2></div>
+  </div>
+  <form method="POST" action="/profile" class="profile-form">
+    <label>
+      <span>Name</span>
+      <input class="sf-input" type="text" name="name" value="<%= fieldValue(profileOldData, 'name', customer.name) %>" required />
+      <% if (pErrors.name) { %><small class="profile-field-error"><%= pErrors.name %></small><% } %>
+    </label>
+    <label>
+      <span>Email</span>
+      <input class="sf-input" type="email" value="<%= customer.email || '' %>" disabled />
+      <small>Email tidak diubah dari halaman ini agar keamanan akun tetap terjaga.</small>
+    </label>
+    <label>
+      <span>Phone</span>
+      <input class="sf-input" type="text" name="phone" value="<%= fieldValue(profileOldData, 'phone', customer.phone) %>" maxlength="30" />
+      <% if (pErrors.phone) { %><small class="profile-field-error"><%= pErrors.phone %></small><% } %>
+    </label>
+    <button type="submit" class="sf-btn sf-btn-primary">Save Profile</button>
+  </form>
+</section>
+
+<%- include('_shell-end') %>

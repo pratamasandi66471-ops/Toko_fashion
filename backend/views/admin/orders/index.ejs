@@ -1,0 +1,104 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.orderStatus) qsBase.set('orderStatus', filters.orderStatus);
+if (filters.paymentStatus) qsBase.set('paymentStatus', filters.paymentStatus);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Order Management',
+  description: 'Pantau order customer, payment status, dan proses pengiriman.'
+}) %>
+
+<section class="crud-panel orders-panel">
+  <div class="crud-actions-row orders-actions-row">
+    <form method="GET" action="/admin/orders" class="crud-filter-form order-filter-form">
+      <label>
+        <span>Search</span>
+        <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Invoice, order code, customer" />
+      </label>
+      <label>
+        <span>Order Status</span>
+        <select name="orderStatus">
+          <option value="">All Status</option>
+          <% allowedOrderStatuses.forEach((status) => { %>
+            <option value="<%= status %>" <%= filters.orderStatus === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+          <% }); %>
+        </select>
+      </label>
+      <label>
+        <span>Payment Status</span>
+        <select name="paymentStatus">
+          <option value="">All Payments</option>
+          <% paymentStatuses.forEach((status) => { %>
+            <option value="<%= status %>" <%= filters.paymentStatus === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+          <% }); %>
+        </select>
+      </label>
+      <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+      <a href="/admin/orders" class="crud-btn ghost">Reset</a>
+    </form>
+  </div>
+
+  <% if (!orders || orders.length === 0) { %>
+    <article class="crud-empty">
+      <i class="ri-shopping-cart-2-line"></i>
+      <h2>Belum ada order</h2>
+      <p>Order customer akan muncul di sini setelah checkout berhasil dibuat.</p>
+      <a href="/admin/dashboard" class="crud-btn primary">Back to Dashboard</a>
+    </article>
+  <% } else { %>
+    <div class="crud-table-wrap">
+      <table class="crud-table orders-table">
+        <thead>
+          <tr>
+            <th>Invoice / Code</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Order Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orders.forEach((order) => { %>
+            <tr>
+              <td data-label="Invoice / Code">
+                <strong><%= order.invoice_number || '-' %></strong>
+                <small><%= order.order_code || '-' %></small>
+              </td>
+              <td data-label="Customer">
+                <strong><%= order.customer_name || 'Unknown Customer' %></strong>
+                <small><%= order.customer_email || '-' %></small>
+              </td>
+              <td data-label="Total"><strong><%= formatRupiah(order.total_amount) %></strong></td>
+              <td data-label="Payment">
+                <span class="order-badge payment-<%= order.display_payment_status || 'unpaid' %>"><%= titleCase(order.display_payment_status || 'unpaid') %></span>
+              </td>
+              <td data-label="Order Status">
+                <span class="order-badge order-<%= order.status %>"><%= titleCase(order.status) %></span>
+                <small>Legacy: <%= titleCase(order.order_status) %></small>
+              </td>
+              <td data-label="Date"><%= formatDate(order.ordered_at || order.created_at) %></td>
+              <td data-label="Action">
+                <a href="/admin/orders/<%= order.id %>" class="crud-btn tiny primary">Detail</a>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="crud-pagination">
+      <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+        <a href="/admin/orders?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+      <% } %>
+    </nav>
+  <% } %>
+</section>
+
+<%- include('../partials/shell-end') %>

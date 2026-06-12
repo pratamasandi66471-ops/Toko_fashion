@@ -1,0 +1,131 @@
+<%
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const stars = (rating) => '★'.repeat(Number(rating || 0)) + '☆'.repeat(Math.max(0, 5 - Number(rating || 0)));
+const preview = (value, length = 120) => {
+  const text = String(value || '').trim();
+  return text.length > length ? `${text.slice(0, length)}...` : (text || '-');
+};
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.rating) qsBase.set('rating', filters.rating);
+if (filters.productId) qsBase.set('productId', filters.productId);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Reviews',
+  description: 'Moderate customer product reviews.'
+}) %>
+
+<section class="reviews-page">
+  <div class="reviews-summary-grid">
+    <article class="reviews-summary-card">
+      <span><i class="ri-star-smile-line"></i></span>
+      <div>
+        <p>Total Reviews</p>
+        <strong><%= pagination.total %></strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="crud-panel reviews-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/reviews" class="crud-filter-form reviews-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Customer, product, review text" />
+        </label>
+        <label>
+          <span>Rating</span>
+          <select name="rating">
+            <option value="">All Ratings</option>
+            <% ratingOptions.forEach((rating) => { %>
+              <option value="<%= rating %>" <%= Number(filters.rating) === rating ? 'selected' : '' %>><%= rating %> Stars</option>
+            <% }); %>
+          </select>
+        </label>
+        <label>
+          <span>Product</span>
+          <select name="productId">
+            <option value="">All Products</option>
+            <% products.forEach((product) => { %>
+              <option value="<%= product.id %>" <%= Number(filters.productId) === Number(product.id) ? 'selected' : '' %>><%= product.name %> (<%= product.sku || '-' %>)</option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/reviews" class="crud-btn ghost">Reset</a>
+      </form>
+    </div>
+
+    <% if (!reviews || reviews.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-star-line"></i>
+        <h2>Belum ada review</h2>
+        <p>Review customer akan muncul di sini setelah tersedia di tabel reviews.</p>
+        <a href="/admin/dashboard" class="crud-btn primary">Back to Dashboard</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table reviews-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Customer</th>
+              <th>Rating</th>
+              <th>Review</th>
+              <th>Order</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% reviews.forEach((review) => { %>
+              <tr>
+                <td data-label="Product">
+                  <div class="review-product-cell">
+                    <img src="<%= review.image_url || '/images/placeholder-product.jpg' %>" alt="<%= review.product_name || 'Product image' %>" />
+                    <div>
+                      <strong><%= review.product_name || 'Unknown Product' %></strong>
+                      <small><%= review.product_sku || '-' %></small>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Customer">
+                  <strong><%= review.customer_name || 'Unknown Customer' %></strong>
+                  <small><%= review.customer_email || '-' %></small>
+                </td>
+                <td data-label="Rating">
+                  <span class="review-stars" aria-label="<%= review.rating %> out of 5 stars"><%= stars(review.rating) %></span>
+                  <small><%= review.rating %>/5</small>
+                </td>
+                <td data-label="Review"><p class="review-preview"><%= preview(review.review_text) %></p></td>
+                <td data-label="Order">
+                  <strong><%= review.invoice_number || '-' %></strong>
+                  <small><%= review.order_code || '-' %></small>
+                </td>
+                <td data-label="Created"><%= formatDate(review.created_at) %></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <a href="/admin/reviews/<%= review.id %>" class="crud-btn tiny primary">Detail</a>
+                    <form method="POST" action="/admin/reviews/<%= review.id %>/delete" onsubmit="return confirm('Yakin ingin menghapus review ini?')">
+                      <button type="submit" class="crud-btn tiny danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/reviews?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

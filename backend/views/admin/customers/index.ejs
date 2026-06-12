@@ -1,0 +1,91 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.status) qsBase.set('status', filters.status);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Customers',
+  description: 'Kelola akun customer dan lihat ringkasan aktivitas belanja.'
+}) %>
+
+<section class="user-management-page">
+  <section class="crud-panel user-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/customers" class="crud-filter-form user-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Name, email, phone" />
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <% allowedStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/customers" class="crud-btn ghost">Reset</a>
+      </form>
+    </div>
+
+    <% if (!customers || customers.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-group-line"></i>
+        <h2>Customer belum tersedia</h2>
+        <p>Customer yang mendaftar akan muncul di sini.</p>
+        <a href="/admin/dashboard" class="crud-btn primary">Back to Dashboard</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table users-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Phone</th>
+              <th>Orders</th>
+              <th>Total Spent</th>
+              <th>Last Order</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% customers.forEach((customer) => { %>
+              <tr>
+                <td data-label="Customer">
+                  <strong><%= customer.name %></strong>
+                  <small><%= customer.email %></small>
+                </td>
+                <td data-label="Phone"><%= customer.phone || '-' %></td>
+                <td data-label="Orders">
+                  <strong><%= customer.total_orders || 0 %></strong>
+                  <small><%= customer.paid_orders || 0 %> paid</small>
+                </td>
+                <td data-label="Total Spent"><strong><%= formatRupiah(customer.total_spent) %></strong></td>
+                <td data-label="Last Order"><%= formatDate(customer.last_order_at) %></td>
+                <td data-label="Status"><span class="user-badge status-<%= customer.status %>"><%= titleCase(customer.status) %></span></td>
+                <td data-label="Action">
+                  <a href="/admin/customers/<%= customer.id %>" class="crud-btn tiny primary">Detail</a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/customers?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

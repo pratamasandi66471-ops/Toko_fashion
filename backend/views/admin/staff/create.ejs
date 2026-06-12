@@ -1,0 +1,54 @@
+<%
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Create Staff',
+  description: 'Buat akun staff operasional dengan role staff otomatis.'
+}) %>
+
+<section class="crud-panel form-panel user-form-panel">
+  <a href="/admin/staff" class="back-link"><i class="ri-arrow-left-line"></i>Back to Staff</a>
+  <form method="POST" action="/admin/staff" class="crud-form user-form" novalidate>
+    <div class="form-grid">
+      <label>
+        <span>Name</span>
+        <input type="text" name="name" value="<%= staff.name || '' %>" required />
+        <% if (errors.name) { %><small class="field-error"><%= errors.name %></small><% } %>
+      </label>
+      <label>
+        <span>Email</span>
+        <input type="email" name="email" value="<%= staff.email || '' %>" required />
+        <% if (errors.email) { %><small class="field-error"><%= errors.email %></small><% } %>
+      </label>
+      <label>
+        <span>Phone</span>
+        <input type="text" name="phone" value="<%= staff.phone || '' %>" />
+      </label>
+      <label>
+        <span>Status</span>
+        <select name="status">
+          <% allowedStatuses.forEach((status) => { %>
+            <option value="<%= status %>" <%= (staff.status || 'active') === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+          <% }); %>
+        </select>
+        <% if (errors.status) { %><small class="field-error"><%= errors.status %></small><% } %>
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" name="password" minlength="8" required />
+        <% if (errors.password) { %><small class="field-error"><%= errors.password %></small><% } %>
+      </label>
+      <label>
+        <span>Role</span>
+        <input type="text" value="staff" disabled />
+      </label>
+    </div>
+    <div class="form-actions">
+      <a href="/admin/staff" class="crud-btn ghost">Cancel</a>
+      <button type="submit" class="crud-btn primary">Create Staff</button>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/shell-end') %>

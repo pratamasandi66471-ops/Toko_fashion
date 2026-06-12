@@ -1,0 +1,96 @@
+<%- include('_shell-start', {
+  heading: 'Account Overview',
+  subtitle: 'Ringkasan akun, alamat utama, dan order terbaru kamu.'
+}) %>
+
+<%
+const customer = profile || {};
+const address = defaultAddress || null;
+const orders = recentOrders || [];
+%>
+
+<section class="profile-stats">
+  <article class="profile-stat-card">
+    <span><i class="ri-shopping-bag-3-line"></i></span>
+    <div><p>Total Orders</p><strong><%= Number(customer.total_orders || 0).toLocaleString('id-ID') %></strong></div>
+  </article>
+  <article class="profile-stat-card">
+    <span><i class="ri-wallet-3-line"></i></span>
+    <div><p>Total Spending</p><strong><%= formatRupiah(customer.total_spending) %></strong></div>
+  </article>
+  <article class="profile-stat-card">
+    <span><i class="ri-calendar-check-line"></i></span>
+    <div><p>Last Order</p><strong><%= formatDate(customer.last_order_at) %></strong></div>
+  </article>
+</section>
+
+<section class="profile-overview-grid">
+  <article class="profile-card">
+    <div class="profile-card-head">
+      <div><span class="profile-card-label">Profile</span><h2>Personal Snapshot</h2></div>
+      <a href="/profile/info" class="profile-card-note">Edit</a>
+    </div>
+    <div class="profile-info-list">
+      <div><span>Name</span><strong><%= customer.name || '-' %></strong></div>
+      <div><span>Email</span><strong><%= customer.email || '-' %></strong></div>
+      <div><span>Phone</span><strong><%= customer.phone || '-' %></strong></div>
+      <div><span>Status</span><strong><%= formatStatus(customer.status) %></strong></div>
+    </div>
+  </article>
+
+  <article class="profile-card">
+    <div class="profile-card-head">
+      <div><span class="profile-card-label">Address</span><h2>Default Address</h2></div>
+      <a href="/profile/addresses" class="profile-card-note">Manage</a>
+    </div>
+    <% if (address) { %>
+      <address class="profile-address">
+        <strong><%= address.recipient_name || customer.name || '-' %></strong>
+        <span><%= address.phone || '-' %></span>
+        <p>
+          <%= address.full_address || '-' %>
+          <% if (address.district) { %>, <%= address.district %><% } %>
+          <% if (address.city) { %>, <%= address.city %><% } %>
+          <% if (address.province) { %>, <%= address.province %><% } %>
+          <% if (address.postal_code) { %> <%= address.postal_code %><% } %>
+        </p>
+        <span class="profile-mini-badge">Default / Latest</span>
+      </address>
+    <% } else { %>
+      <div class="profile-empty">
+        <i class="ri-map-pin-line"></i>
+        <h3>Belum ada alamat</h3>
+        <p>Tambahkan alamat dari Address Book agar checkout berikutnya lebih cepat.</p>
+      </div>
+    <% } %>
+  </article>
+</section>
+
+<section class="profile-card">
+  <div class="profile-card-head">
+    <div><span class="profile-card-label">Orders</span><h2>Recent Orders</h2></div>
+    <a href="/profile/orders" class="profile-card-note">View all</a>
+  </div>
+  <% if (orders.length > 0) { %>
+    <div class="profile-order-list">
+      <% orders.forEach((order) => { %>
+        <article class="profile-order-row">
+          <div>
+            <strong><%= order.invoice_number || order.order_code || `Order #${order.id}` %></strong>
+            <span><%= order.order_code || '-' %> &bull; <%= formatDate(order.ordered_at || order.created_at) %></span>
+          </div>
+          <span class="profile-status profile-status-<%= order.status || 'unknown' %>"><%= formatStatus(order.status) %></span>
+          <strong class="profile-order-total"><%= formatRupiah(order.total_amount) %></strong>
+        </article>
+      <% }); %>
+    </div>
+  <% } else { %>
+    <div class="profile-empty">
+      <i class="ri-shopping-bag-line"></i>
+      <h3>Belum ada order</h3>
+      <p>Order terbaru kamu akan muncul di sini setelah checkout berhasil.</p>
+    </div>
+  <% } %>
+</section>
+
+<%- include('_shell-end') %>

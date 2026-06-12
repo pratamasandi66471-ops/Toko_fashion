@@ -1,0 +1,118 @@
+<%- include('_shell-start', {
+  heading: 'Address Book',
+  subtitle: 'Kelola alamat pengiriman tanpa membuat halaman profile terasa padat.'
+}) %>
+
+<%
+const addressList = addresses || [];
+const aErrors = addressErrors || {};
+const addressOldData = addressOld || {};
+const currentAddressMode = addressFormMode || 'create';
+const currentAddressTarget = addressFormTarget || '/profile/addresses';
+%>
+
+<section class="profile-address-layout">
+  <article class="profile-card">
+    <div class="profile-card-head">
+      <div>
+        <span class="profile-card-label">Address</span>
+        <h2><%= currentAddressMode === 'edit' ? 'Edit Address' : 'Add New Address' %></h2>
+      </div>
+      <% if (currentAddressMode === 'edit') { %>
+        <a href="/profile/addresses" class="profile-card-note">Cancel edit</a>
+      <% } %>
+    </div>
+
+    <form method="POST" action="<%= currentAddressTarget %>" class="profile-form">
+      <div class="profile-form-grid">
+        <label>
+          <span>Recipient Name</span>
+          <input class="sf-input" type="text" name="recipient_name" value="<%= fieldValue(addressOldData, 'recipient_name') %>" required />
+          <% if (aErrors.recipient_name) { %><small class="profile-field-error"><%= aErrors.recipient_name %></small><% } %>
+        </label>
+        <label>
+          <span>Phone</span>
+          <input class="sf-input" type="text" name="phone" value="<%= fieldValue(addressOldData, 'phone') %>" required />
+          <% if (aErrors.phone) { %><small class="profile-field-error"><%= aErrors.phone %></small><% } %>
+        </label>
+        <label>
+          <span>Province</span>
+          <input class="sf-input" type="text" name="province" value="<%= fieldValue(addressOldData, 'province') %>" required />
+          <% if (aErrors.province) { %><small class="profile-field-error"><%= aErrors.province %></small><% } %>
+        </label>
+        <label>
+          <span>City</span>
+          <input class="sf-input" type="text" name="city" value="<%= fieldValue(addressOldData, 'city') %>" required />
+          <% if (aErrors.city) { %><small class="profile-field-error"><%= aErrors.city %></small><% } %>
+        </label>
+        <label>
+          <span>District</span>
+          <input class="sf-input" type="text" name="district" value="<%= fieldValue(addressOldData, 'district') %>" />
+          <% if (aErrors.district) { %><small class="profile-field-error"><%= aErrors.district %></small><% } %>
+        </label>
+        <label>
+          <span>Postal Code</span>
+          <input class="sf-input" type="text" name="postal_code" value="<%= fieldValue(addressOldData, 'postal_code') %>" />
+          <% if (aErrors.postal_code) { %><small class="profile-field-error"><%= aErrors.postal_code %></small><% } %>
+        </label>
+      </div>
+      <label>
+        <span>Full Address</span>
+        <textarea class="sf-textarea" name="full_address" rows="3" required><%= fieldValue(addressOldData, 'full_address') %></textarea>
+        <% if (aErrors.full_address) { %><small class="profile-field-error"><%= aErrors.full_address %></small><% } %>
+      </label>
+      <label class="profile-check">
+        <input type="checkbox" name="is_default" <%= ['1', 'true', 'on', true, 1].includes(addressOldData.is_default) ? 'checked' : '' %> />
+        <span>Set as default address</span>
+      </label>
+      <button type="submit" class="sf-btn sf-btn-primary"><%= currentAddressMode === 'edit' ? 'Save Address' : 'Add Address' %></button>
+    </form>
+  </article>
+
+  <article class="profile-card">
+    <div class="profile-card-head">
+      <div><span class="profile-card-label">Saved</span><h2>Saved Addresses</h2></div>
+      <span class="profile-card-note"><%= addressList.length %> address</span>
+    </div>
+
+    <% if (addressList.length > 0) { %>
+      <div class="profile-address-list">
+        <% addressList.forEach((item) => { %>
+          <article class="profile-address-row">
+            <div>
+              <strong><%= item.recipient_name %></strong>
+              <span><%= item.phone %></span>
+              <p>
+                <%= item.full_address %>
+                <% if (item.district) { %>, <%= item.district %><% } %>
+                <% if (item.city) { %>, <%= item.city %><% } %>
+                <% if (item.province) { %>, <%= item.province %><% } %>
+                <% if (item.postal_code) { %> <%= item.postal_code %><% } %>
+              </p>
+              <% if (Number(item.is_default) === 1) { %><span class="profile-mini-badge">Default</span><% } %>
+            </div>
+            <div class="profile-row-actions">
+              <a href="/profile/addresses/<%= item.id %>/edit" class="sf-btn sf-btn-secondary">Edit</a>
+              <% if (Number(item.is_default) !== 1) { %>
+                <form method="POST" action="/profile/addresses/<%= item.id %>/default">
+                  <button type="submit" class="sf-btn sf-btn-secondary">Set Default</button>
+                </form>
+              <% } %>
+              <form method="POST" action="/profile/addresses/<%= item.id %>/delete" onsubmit="return confirm('Hapus alamat ini? Alamat yang sudah dipakai order tidak bisa dihapus.');">
+                <button type="submit" class="sf-btn sf-btn-danger">Delete</button>
+              </form>
+            </div>
+          </article>
+        <% }); %>
+      </div>
+    <% } else { %>
+      <div class="profile-empty">
+        <i class="ri-map-pin-add-line"></i>
+        <h3>Belum ada alamat tersimpan</h3>
+        <p>Gunakan form di samping untuk menambahkan alamat pengiriman.</p>
+      </div>
+    <% } %>
+  </article>
+</section>
+
+<%- include('_shell-end') %>

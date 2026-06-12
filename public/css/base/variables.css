@@ -1,0 +1,21 @@
+:root {
+  --sf-pink-soft: #F4E1E1;
+  --sf-pink: #E991A8;
+  --sf-blue-sky: #63A3BC;
+  --sf-blue-denim: #5B7DAF;
+  --sf-navy: #1C1531;
+  --sf-white: #FFFFFF;
+  --sf-bg: #fbf7f8;
+  --sf-surface: #FFFFFF;
+  --sf-border: rgba(28, 21, 49, 0.12);
+  --sf-text: #1C1531;
+  --sf-muted: #6d7284;
+  --sf-success: #176b43;
+  --sf-warning: #8a5a12;
+  --sf-danger: #a33a35;
+  --sf-radius-sm: 10px;
+  --sf-radius-md: 16px;
+  --sf-radius-lg: 24px;
+  --sf-shadow-sm: 0 10px 24px rgba(28, 21, 49, 0.06);
+  --sf-shadow-md: 0 18px 44px rgba(28, 21, 49, 0.09);
+}

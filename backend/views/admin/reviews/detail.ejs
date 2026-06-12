@@ -1,0 +1,89 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const stars = (rating) => '★'.repeat(Number(rating || 0)) + '☆'.repeat(Math.max(0, 5 - Number(rating || 0)));
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Review Detail',
+  description: 'Inspect review content, product, customer, and order context.'
+}) %>
+
+<section class="review-detail-page">
+  <div class="review-detail-header">
+    <div>
+      <a href="/admin/reviews" class="back-link"><i class="ri-arrow-left-line"></i>Back to Reviews</a>
+      <h2>Review #<%= review.id %></h2>
+      <p><%= review.product_name || 'Unknown Product' %> by <%= review.customer_name || 'Unknown Customer' %></p>
+    </div>
+    <div class="detail-rating">
+      <span class="rating-badge"><%= review.rating %>/5</span>
+      <span class="review-stars" aria-label="<%= review.rating %> out of 5 stars"><%= stars(review.rating) %></span>
+    </div>
+  </div>
+
+  <div class="review-detail-grid">
+    <article class="review-card review-content-card">
+      <h3>Review Content</h3>
+      <dl class="review-info-list">
+        <div><dt>Rating</dt><dd><span class="review-stars"><%= stars(review.rating) %></span></dd></div>
+        <div><dt>Created At</dt><dd><%= formatDate(review.created_at) %></dd></div>
+      </dl>
+      <blockquote><%= review.review_text || '-' %></blockquote>
+    </article>
+
+    <article class="review-card">
+      <h3>Product</h3>
+      <div class="detail-product">
+        <img src="<%= review.image_url || '/images/placeholder-product.jpg' %>" alt="<%= review.product_name || 'Product image' %>" />
+        <div>
+          <strong><%= review.product_name || '-' %></strong>
+          <p>SKU: <%= review.product_sku || '-' %></p>
+          <span class="review-badge status-<%= review.product_status || 'unknown' %>"><%= titleCase(review.product_status || 'unknown') %></span>
+          <% if (review.product_slug) { %>
+            <a href="/shop/<%= review.product_slug %>" target="_blank" class="inline-link">View storefront</a>
+          <% } %>
+        </div>
+      </div>
+    </article>
+
+    <article class="review-card">
+      <h3>Customer</h3>
+      <dl class="review-info-list">
+        <div><dt>Name</dt><dd><%= review.customer_name || '-' %></dd></div>
+        <div><dt>Email</dt><dd><%= review.customer_email || '-' %></dd></div>
+        <div><dt>Phone</dt><dd><%= review.customer_phone || '-' %></dd></div>
+        <div><dt>Status</dt><dd><span class="review-badge status-<%= review.customer_status || 'unknown' %>"><%= titleCase(review.customer_status || 'unknown') %></span></dd></div>
+      </dl>
+    </article>
+
+    <article class="review-card">
+      <h3>Order</h3>
+      <dl class="review-info-list">
+        <div><dt>Invoice</dt><dd><%= review.invoice_number || '-' %></dd></div>
+        <div><dt>Order Code</dt><dd><%= review.order_code || '-' %></dd></div>
+        <div><dt>Status</dt><dd><span class="review-badge order-<%= review.order_status || 'unknown' %>"><%= titleCase(review.order_status || 'unknown') %></span></dd></div>
+        <div><dt>Payment</dt><dd><span class="review-badge payment-<%= review.payment_status || 'unpaid' %>"><%= titleCase(review.payment_status || 'unpaid') %></span></dd></div>
+        <div><dt>Total</dt><dd><%= formatRupiah(review.total_amount) %></dd></div>
+        <div><dt>Ordered At</dt><dd><%= formatDate(review.ordered_at || review.order_created_at) %></dd></div>
+      </dl>
+      <% if (review.order_id) { %>
+        <a href="/admin/orders/<%= review.order_id %>" class="inline-link">Open order detail</a>
+      <% } %>
+    </article>
+  </div>
+
+  <section class="review-card review-actions-card">
+    <h3>Actions</h3>
+    <p>Delete akan menghapus review secara permanen karena tabel reviews belum memiliki kolom status/moderation.</p>
+    <div class="action-row">
+      <form method="POST" action="/admin/reviews/<%= review.id %>/delete" onsubmit="return confirm('Yakin ingin menghapus review ini?')">
+        <button type="submit" class="crud-btn danger"><i class="ri-delete-bin-line"></i>Delete Review</button>
+      </form>
+      <a href="/admin/reviews" class="crud-btn ghost">Back to List</a>
+    </div>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

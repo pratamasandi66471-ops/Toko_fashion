@@ -1,0 +1,98 @@
+<%
+const cartData = cart || { items: [], subtotal: 0, itemCount: 0, isEmpty: true };
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  maximumFractionDigits: 0
+}).format(Number(value || 0));
+%>
+
+<section class="cart-page sf-container">
+  <header class="sf-page-header cart-header">
+    <div>
+      <p class="sf-page-kicker">Shopping Bag</p>
+      <h1>Keranjang Belanja</h1>
+      <p>Review produk pilihanmu sebelum lanjut ke checkout. Stok dan harga mengikuti variant yang kamu pilih.</p>
+    </div>
+    <% if (!cartData.isEmpty) { %>
+      <span class="sf-badge sf-badge-warning"><%= cartData.itemCount %> item</span>
+    <% } %>
+  </header>
+
+  <% if (cartData.isEmpty) { %>
+    <div class="sf-empty-state cart-empty">
+      <i class="ri-shopping-bag-line"></i>
+      <h2>Keranjang kamu masih kosong</h2>
+      <p>Temukan koleksi S Fashion favoritmu dan tambahkan ke keranjang untuk mulai checkout.</p>
+      <a href="/shop" class="sf-btn sf-btn-primary">Continue Shopping</a>
+    </div>
+  <% } else { %>
+    <div class="cart-layout">
+      <section class="cart-items-panel">
+        <div class="cart-section-title">
+          <h2>Cart Items</h2>
+          <p><%= cartData.itemCount %> item dalam keranjang</p>
+        </div>
+
+        <div class="cart-item-list">
+          <% cartData.items.forEach((item) => { %>
+            <article class="cart-item-card sf-card">
+              <a href="/shop/<%= item.productSlug %>" class="cart-item-image" aria-label="View <%= item.productName %>">
+                <img src="<%= item.imageUrl || '/images/placeholder-product.jpg' %>" alt="<%= item.productName %>" />
+              </a>
+
+              <div class="cart-item-main">
+                <div class="cart-item-copy">
+                  <a href="/shop/<%= item.productSlug %>" class="cart-product-name"><%= item.productName %></a>
+                  <p class="cart-product-meta">
+                    <span>Size <strong><%= item.size %></strong></span>
+                    <span>Color <strong><%= item.color %></strong></span>
+                    <span>Stock <strong><%= item.stock %></strong></span>
+                  </p>
+                  <p class="cart-unit-price"><%= formatRupiah(item.unitPrice) %> / item</p>
+                </div>
+
+                <div class="cart-item-actions">
+                  <form method="POST" action="/cart/items/<%= item.cartItemId %>?_method=PATCH" class="cart-qty-form">
+                    <label for="quantity-<%= item.cartItemId %>">Qty</label>
+                    <input id="quantity-<%= item.cartItemId %>" class="sf-input" type="number" name="quantity" min="1" max="<%= item.stock %>" value="<%= item.quantity %>" required />
+                    <button type="submit" class="sf-btn sf-btn-secondary">Update</button>
+                  </form>
+
+                  <form method="POST" action="/cart/items/<%= item.cartItemId %>?_method=DELETE">
+                    <button type="submit" class="sf-btn sf-btn-danger">Remove</button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="cart-item-total">
+                <span>Subtotal</span>
+                <strong><%= formatRupiah(item.subtotal) %></strong>
+              </div>
+            </article>
+          <% }); %>
+        </div>
+      </section>
+
+      <aside class="cart-summary sf-card">
+        <div>
+          <p class="sf-page-kicker">Order Summary</p>
+          <h2>Ringkasan</h2>
+        </div>
+        <dl class="cart-summary-list">
+          <div>
+            <dt>Subtotal</dt>
+            <dd><%= formatRupiah(cartData.subtotal) %></dd>
+          </div>
+          <div>
+            <dt>Estimated Total</dt>
+            <dd><%= formatRupiah(cartData.subtotal) %></dd>
+          </div>
+        </dl>
+        <p class="cart-summary-note">Shipping dan voucher dihitung pada halaman checkout.</p>
+        <a href="/checkout" class="sf-btn sf-btn-primary cart-checkout-btn">Lanjut ke Checkout</a>
+        <a href="/shop" class="sf-btn sf-btn-secondary">Continue Shopping</a>
+      </aside>
+    </div>
+  <% } %>
+</section>

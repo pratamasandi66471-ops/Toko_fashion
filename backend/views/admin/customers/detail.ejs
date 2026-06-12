@@ -1,0 +1,139 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Customer Detail',
+  description: 'Lihat profil, alamat, dan riwayat order customer.'
+}) %>
+
+<section class="user-detail-page">
+  <div class="user-detail-header">
+    <div>
+      <a href="/admin/customers" class="back-link"><i class="ri-arrow-left-line"></i>Back to Customers</a>
+      <h2><%= customer.name %></h2>
+      <p><%= customer.email %></p>
+    </div>
+    <span class="user-badge status-<%= customer.status %>"><%= titleCase(customer.status) %></span>
+  </div>
+
+  <div class="user-summary-grid">
+    <article class="user-summary-card">
+      <span><i class="ri-shopping-bag-3-line"></i></span>
+      <div>
+        <p>Total Orders</p>
+        <strong><%= customer.total_orders || 0 %></strong>
+      </div>
+    </article>
+    <article class="user-summary-card">
+      <span><i class="ri-bank-card-line"></i></span>
+      <div>
+        <p>Paid Orders</p>
+        <strong><%= customer.paid_orders || 0 %></strong>
+      </div>
+    </article>
+    <article class="user-summary-card is-wide">
+      <span><i class="ri-money-dollar-circle-line"></i></span>
+      <div>
+        <p>Total Spent</p>
+        <strong><%= formatRupiah(customer.total_spent) %></strong>
+      </div>
+    </article>
+    <article class="user-summary-card">
+      <span><i class="ri-calendar-check-line"></i></span>
+      <div>
+        <p>Last Order</p>
+        <strong><%= formatDate(customer.last_order_at) %></strong>
+      </div>
+    </article>
+  </div>
+
+  <div class="user-detail-grid">
+    <article class="user-card">
+      <h3>Profile</h3>
+      <dl class="user-info-list">
+        <div><dt>Name</dt><dd><%= customer.name %></dd></div>
+        <div><dt>Email</dt><dd><%= customer.email %></dd></div>
+        <div><dt>Phone</dt><dd><%= customer.phone || '-' %></dd></div>
+        <div><dt>Joined</dt><dd><%= formatDate(customer.created_at) %></dd></div>
+      </dl>
+    </article>
+
+    <article class="user-card">
+      <h3>Update Status</h3>
+      <p class="muted-text">Status selain active tidak bisa login karena auth controller sudah mengecek user aktif.</p>
+      <form method="POST" action="/admin/customers/<%= customer.id %>/status" class="status-update-form">
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <% allowedStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= customer.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn primary">Save Status</button>
+      </form>
+    </article>
+  </div>
+
+  <section class="user-card">
+    <h3>Addresses</h3>
+    <% if (!addresses || addresses.length === 0) { %>
+      <p class="empty-inline">Customer belum menyimpan alamat.</p>
+    <% } else { %>
+      <div class="address-grid">
+        <% addresses.forEach((address) => { %>
+          <article class="address-card">
+            <div>
+              <strong><%= address.recipient_name || customer.name %></strong>
+              <% if (Number(address.is_default) === 1) { %><span class="user-badge status-active">Default</span><% } %>
+            </div>
+            <p><%= address.phone || '-' %></p>
+            <p><%= [address.full_address, address.district, address.city, address.province, address.postal_code].filter(Boolean).join(', ') %></p>
+          </article>
+        <% }); %>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="user-card">
+    <h3>Recent Orders</h3>
+    <% if (!recentOrders || recentOrders.length === 0) { %>
+      <p class="empty-inline">Customer belum memiliki order.</p>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table users-table">
+          <thead>
+            <tr>
+              <th>Invoice / Code</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Order Status</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentOrders.forEach((order) => { %>
+              <tr>
+                <td data-label="Invoice / Code">
+                  <strong><%= order.invoice_number || '-' %></strong>
+                  <small><%= order.order_code || '-' %></small>
+                </td>
+                <td data-label="Total"><%= formatRupiah(order.total_amount) %></td>
+                <td data-label="Payment"><span class="user-badge payment-<%= order.payment_status || 'unpaid' %>"><%= titleCase(order.payment_status || 'unpaid') %></span></td>
+                <td data-label="Order Status"><span class="user-badge order-<%= order.status %>"><%= titleCase(order.status) %></span></td>
+                <td data-label="Date"><%= formatDate(order.created_at) %></td>
+                <td data-label="Action"><a href="/admin/orders/<%= order.id %>" class="crud-btn tiny primary">Open</a></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

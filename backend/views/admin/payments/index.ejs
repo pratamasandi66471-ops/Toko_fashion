@@ -1,0 +1,122 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.status) qsBase.set('status', filters.status);
+if (filters.method) qsBase.set('method', filters.method);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Payment Verification',
+  description: 'Review and verify customer payments.'
+}) %>
+
+<section class="payments-page">
+  <div class="payment-summary-grid">
+    <article class="payment-summary-card">
+      <span><i class="ri-bank-card-line"></i></span>
+      <div><p>Total Payments</p><strong><%= summary.totalPayments %></strong></div>
+    </article>
+    <article class="payment-summary-card is-pending">
+      <span><i class="ri-time-line"></i></span>
+      <div><p>Pending</p><strong><%= summary.pendingPayments %></strong></div>
+    </article>
+    <article class="payment-summary-card is-paid">
+      <span><i class="ri-check-double-line"></i></span>
+      <div><p>Paid</p><strong><%= summary.paidPayments %></strong></div>
+    </article>
+    <article class="payment-summary-card is-failed">
+      <span><i class="ri-close-circle-line"></i></span>
+      <div><p>Failed</p><strong><%= summary.failedPayments %></strong></div>
+    </article>
+  </div>
+
+  <section class="crud-panel payments-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/payments" class="crud-filter-form payment-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Invoice, order code, customer" />
+        </label>
+        <label>
+          <span>Payment Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <% paymentStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <label>
+          <span>Method</span>
+          <select name="method">
+            <option value="">All Methods</option>
+            <% methods.forEach((method) => { %>
+              <option value="<%= method.method %>" <%= filters.method === method.method ? 'selected' : '' %>><%= titleCase(method.method) %> (<%= method.total %>)</option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/payments" class="crud-btn ghost">Reset</a>
+      </form>
+    </div>
+
+    <% if (!payments || payments.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-bank-card-line"></i>
+        <h2>Belum ada payment</h2>
+        <p>Payment customer akan muncul setelah checkout berhasil dibuat.</p>
+        <a href="/admin/dashboard" class="crud-btn primary">Back to Dashboard</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table payments-table">
+          <thead>
+            <tr>
+              <th>Invoice / Code</th>
+              <th>Customer</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Order Payment</th>
+              <th>Order Status</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% payments.forEach((payment) => { %>
+              <tr>
+                <td data-label="Invoice / Code">
+                  <strong><%= payment.invoice_number || '-' %></strong>
+                  <small><%= payment.order_code || '-' %></small>
+                </td>
+                <td data-label="Customer">
+                  <strong><%= payment.customer_name || 'Unknown Customer' %></strong>
+                  <small><%= payment.customer_email || '-' %></small>
+                </td>
+                <td data-label="Method"><%= titleCase(payment.display_method || '-') %></td>
+                <td data-label="Amount"><strong><%= formatRupiah(payment.amount || payment.total_amount) %></strong></td>
+                <td data-label="Payment"><span class="payment-badge payment-<%= payment.payment_status %>"><%= titleCase(payment.payment_status) %></span></td>
+                <td data-label="Order Payment"><span class="payment-badge orderpay-<%= payment.order_payment_status || 'unpaid' %>"><%= titleCase(payment.order_payment_status || 'unpaid') %></span></td>
+                <td data-label="Order Status"><span class="payment-badge order-<%= payment.order_status %>"><%= titleCase(payment.order_status) %></span></td>
+                <td data-label="Created"><%= formatDate(payment.created_at) %></td>
+                <td data-label="Action"><a href="/admin/payments/<%= payment.id %>" class="crud-btn tiny primary">Detail</a></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/payments?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

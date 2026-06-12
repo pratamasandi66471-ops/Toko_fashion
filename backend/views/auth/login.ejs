@@ -1,0 +1,27 @@
+<% const errors = typeof formErrors !== 'undefined' ? formErrors : {}; %>
+<% const oldData = typeof old !== 'undefined' ? old : {}; %>
+
+<section class="auth-card">
+    <div class="auth-card-header">
+        <h1>Selamat Datang</h1>
+        <p>Login untuk melanjutkan pengalaman belanja kamu di S Fashion.</p>
+    </div>
+
+    <% if (errors.general) { %>
+        <p class="auth-error-global"><%= errors.general %></p>
+    <% } %>
+
+    <form action="/login" method="POST" class="auth-form" novalidate>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="you@example.com" value="<%= oldData.email || '' %>" required />
+        <% if (errors.email) { %><small class="auth-field-error"><%= errors.email %></small><% } %>
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="Masukkan password" required />
+        <% if (errors.password) { %><small class="auth-field-error"><%= errors.password %></small><% } %>
+
+        <button type="submit">Masuk</button>
+    </form>
+
+    <p class="auth-switch">Belum punya akun? <a href="/register">Daftar</a></p>
+</section>

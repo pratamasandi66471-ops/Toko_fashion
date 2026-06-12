@@ -1,0 +1,145 @@
+<%
+const profile = adminProfile || {};
+const formatDate = (value) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+};
+const initial = String(profile.name || profile.email || 'A').charAt(0).toUpperCase();
+const statusClass = String(profile.status || '').toLowerCase();
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Admin Profile',
+  description: 'Manage your admin account identity and password.'
+}) %>
+
+<section class="admin-profile-page">
+  <div class="admin-profile-header">
+    <div>
+      <span class="admin-profile-eyebrow">Account Management</span>
+      <h2>Admin Profile</h2>
+      <p>Keep your admin identity updated. Email, role, and status are protected account fields.</p>
+    </div>
+    <a href="/admin/dashboard" class="admin-profile-back">
+      <i class="ri-arrow-left-line"></i>
+      Back to Dashboard
+    </a>
+  </div>
+
+  <div class="admin-profile-shell">
+    <aside class="admin-profile-summary">
+      <div class="admin-profile-avatar"><%= initial %></div>
+      <h3><%= profile.name || '-' %></h3>
+      <p><%= profile.email || '-' %></p>
+
+      <div class="admin-profile-badges">
+        <span class="admin-profile-badge role"><%= profile.role || 'admin' %></span>
+        <span class="admin-profile-badge status status-<%= statusClass %>"><%= profile.status || '-' %></span>
+      </div>
+
+      <div class="admin-profile-meta">
+        <div>
+          <span>Member Since</span>
+          <strong><%= formatDate(profile.created_at) %></strong>
+        </div>
+        <div>
+          <span>Last Login</span>
+          <strong><%= profile.last_login_at ? formatDate(profile.last_login_at) : 'Belum tersedia' %></strong>
+        </div>
+      </div>
+    </aside>
+
+    <div class="admin-profile-main">
+      <article class="admin-profile-card">
+        <div class="admin-profile-card-head">
+          <div>
+            <span>Profile</span>
+            <h3>Personal Information</h3>
+          </div>
+          <i class="ri-user-settings-line"></i>
+        </div>
+
+        <form method="POST" action="/admin/profile" class="admin-profile-form">
+          <label class="admin-profile-field">
+            <span>Name</span>
+            <input type="text" name="name" value="<%= profile.name || '' %>" maxlength="100" required />
+          </label>
+
+          <label class="admin-profile-field">
+            <span>Phone</span>
+            <input type="tel" name="phone" value="<%= profile.phone || '' %>" maxlength="30" placeholder="+62..." />
+          </label>
+
+          <label class="admin-profile-field">
+            <span>Email</span>
+            <input type="email" value="<%= profile.email || '' %>" readonly aria-readonly="true" />
+            <small>Email is read-only for this stage.</small>
+          </label>
+
+          <label class="admin-profile-field">
+            <span>Role</span>
+            <input type="text" value="<%= profile.role || 'admin' %>" readonly aria-readonly="true" />
+          </label>
+
+          <label class="admin-profile-field">
+            <span>Status</span>
+            <input type="text" value="<%= profile.status || '-' %>" readonly aria-readonly="true" />
+          </label>
+
+          <div class="admin-profile-actions">
+            <button type="submit" class="admin-profile-btn primary">
+              <i class="ri-save-3-line"></i>
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </article>
+
+      <article class="admin-profile-card admin-profile-security">
+        <div class="admin-profile-card-head">
+          <div>
+            <span>Security</span>
+            <h3>Change Password</h3>
+          </div>
+          <i class="ri-lock-password-line"></i>
+        </div>
+
+        <form method="POST" action="/admin/profile/password" class="admin-profile-form">
+          <label class="admin-profile-field">
+            <span>Current Password</span>
+            <input type="password" name="current_password" autocomplete="current-password" required />
+          </label>
+
+          <label class="admin-profile-field">
+            <span>New Password</span>
+            <input type="password" name="new_password" autocomplete="new-password" minlength="8" required />
+            <small>Use at least 8 characters.</small>
+          </label>
+
+          <label class="admin-profile-field">
+            <span>Confirm New Password</span>
+            <input type="password" name="confirm_password" autocomplete="new-password" minlength="8" required />
+          </label>
+
+          <div class="admin-profile-actions">
+            <button type="submit" class="admin-profile-btn secondary">
+              <i class="ri-shield-keyhole-line"></i>
+              Update Password
+            </button>
+          </div>
+        </form>
+      </article>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/shell-end') %>

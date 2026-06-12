@@ -1,0 +1,108 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const nextStatusByCurrent = { pending: 'processing', processing: 'shipped', shipped: 'completed' };
+const nextStatus = nextStatusByCurrent[order.status] || '';
+%>
+
+<%- include('partials/shell-start', {
+  heading: 'Order Detail',
+  description: 'Review order data and continue the allowed staff workflow.'
+}) %>
+
+<section class="staff-panel">
+  <div class="staff-actions-row">
+    <a href="/staff/orders" class="staff-btn ghost"><i class="ri-arrow-left-line"></i>Back to Orders</a>
+    <span class="badge badge-<%= order.status %>"><%= titleCase(order.status) %></span>
+    <span class="badge badge-<%= order.display_payment_status || 'unpaid' %>"><%= titleCase(order.display_payment_status || 'unpaid') %></span>
+  </div>
+
+  <div class="detail-grid">
+    <article class="staff-card">
+      <h3>Summary</h3>
+      <p class="info-line"><strong><%= order.invoice_number || '-' %></strong></p>
+      <p class="info-line">Order: <%= order.order_code || '-' %></p>
+      <p class="info-line">Total: <%= formatRupiah(order.total_amount) %></p>
+      <p class="info-line">Date: <%= formatDate(order.ordered_at || order.created_at) %></p>
+      <p class="info-line">Notes: <%= order.notes || '-' %></p>
+    </article>
+    <article class="staff-card">
+      <h3>Customer</h3>
+      <p class="info-line"><strong><%= order.customer_name || 'Unknown Customer' %></strong></p>
+      <p class="info-line"><%= order.customer_email || '-' %></p>
+      <p class="info-line"><%= order.customer_phone || '-' %></p>
+    </article>
+    <article class="staff-card">
+      <h3>Address</h3>
+      <p class="info-line"><strong><%= order.recipient_name || '-' %></strong></p>
+      <p class="info-line"><%= order.address_phone || '-' %></p>
+      <p class="info-line"><%= [order.district, order.city, order.province, order.postal_code].filter(Boolean).join(', ') || '-' %></p>
+      <p class="info-line"><%= order.full_address || '-' %></p>
+    </article>
+  </div>
+</section>
+
+<section class="staff-panel">
+  <h2>Items</h2>
+  <div class="staff-table-wrap">
+    <table class="staff-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Variant SKU</th>
+          <th>Size</th>
+          <th>Color</th>
+          <th>Price</th>
+          <th>Qty</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% items.forEach((item) => { %>
+          <tr>
+            <td data-label="Product"><strong><%= item.product_name %></strong></td>
+            <td data-label="Variant SKU"><%= item.variant_sku || '-' %></td>
+            <td data-label="Size"><%= item.size || '-' %></td>
+            <td data-label="Color"><%= item.color || '-' %></td>
+            <td data-label="Price"><%= formatRupiah(item.display_price) %></td>
+            <td data-label="Qty"><%= item.quantity %></td>
+            <td data-label="Total"><strong><%= formatRupiah(item.display_total) %></strong></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="detail-actions">
+  <article class="staff-card">
+    <h3>Payment</h3>
+    <p class="info-line">Method: <%= titleCase(order.payment_method || order.payment_method_alt || '-') %></p>
+    <p class="info-line">Status: <span class="badge badge-<%= order.display_payment_status || 'unpaid' %>"><%= titleCase(order.display_payment_status || 'unpaid') %></span></p>
+    <p class="info-line">Paid At: <%= formatDate(order.payment_paid_at) %></p>
+  </article>
+  <article class="staff-card">
+    <h3>Tracking</h3>
+    <form method="POST" action="/staff/orders/<%= order.id %>/tracking" class="staff-form">
+      <label><span>Courier</span><input type="text" name="courier" value="<%= order.courier || '' %>" placeholder="JNE, J&T, SiCepat" /></label>
+      <label><span>Tracking Number</span><input type="text" name="tracking_number" value="<%= order.tracking_number || '' %>" placeholder="Receipt number" /></label>
+      <button type="submit" class="staff-btn secondary">Save Tracking</button>
+    </form>
+  </article>
+  <article class="staff-card">
+    <h3>Move Status</h3>
+    <% if (nextStatus) { %>
+      <p class="muted">Next allowed transition: <strong><%= titleCase(order.status) %> -> <%= titleCase(nextStatus) %></strong></p>
+      <form method="POST" action="/staff/orders/<%= order.id %>/status" class="staff-form">
+        <input type="hidden" name="status" value="<%= nextStatus %>" />
+        <button type="submit" class="staff-btn primary">Move to <%= titleCase(nextStatus) %></button>
+      </form>
+      <% if (nextStatus === 'shipped') { %><p class="muted">Courier and tracking number are required before shipping.</p><% } %>
+    <% } else { %>
+      <p class="muted">No further staff transition is available.</p>
+    <% } %>
+  </article>
+</section>
+
+<%- include('partials/shell-end') %>

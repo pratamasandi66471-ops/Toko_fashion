@@ -1,0 +1,19 @@
+:root {
+  --admin-bg: var(--sf-bg);
+  --admin-surface: var(--sf-surface);
+  --admin-border: var(--sf-border);
+  --admin-text: var(--sf-text);
+  --admin-muted: var(--sf-muted);
+  --admin-primary: var(--sf-navy);
+  --admin-primary-soft: var(--sf-pink-soft);
+  --admin-success: var(--sf-success);
+  --admin-warning: var(--sf-warning);
+  --admin-danger: var(--sf-danger);
+  --admin-radius-sm: var(--sf-radius-sm);
+  --admin-radius-md: var(--sf-radius-md);
+  --admin-radius-lg: var(--sf-radius-lg);
+  --admin-shadow-sm: var(--sf-shadow-sm);
+  --admin-shadow-md: var(--sf-shadow-md);
+  --admin-sidebar-width: 280px;
+  --admin-sidebar-collapsed-width: 76px;
+}

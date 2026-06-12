@@ -1,0 +1,215 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0
+}).format(Number(value || 0));
+
+const categories = Array.isArray(activeCategories) ? activeCategories : [];
+const arrivals = Array.isArray(newArrivals) ? newArrivals : [];
+const featured = Array.isArray(featuredProducts) ? featuredProducts : [];
+const placeholderImage = '/images/placeholder-product.jpg';
+const productUrl = (product) => product && product.slug ? `/shop/${product.slug}` : '/shop';
+const productImage = (product) => product && product.image_url ? product.image_url : placeholderImage;
+const hasDiscount = (product) => Number(product?.discount_price || 0) > 0 && Number(product.discount_price) < Number(product?.price || 0);
+const displayPrice = (product) => hasDiscount(product) ? product.discount_price : product.price;
+%>
+
+<section class="home-page">
+    <section class="hero-section">
+        <div class="hero-content">
+            <span class="hero-label">NEW SEASON, NEW YOU</span>
+
+            <h1>
+                Elevated Style
+                <span>Every Day</span>
+            </h1>
+
+            <p>
+                Modern pieces, timeless comfort. Explore effortlessly chic styles
+                designed to move with you.
+            </p>
+
+            <a href="/shop" class="hero-btn">
+                Shop Now
+                <i class="ri-arrow-right-line"></i>
+            </a>
+        </div>
+
+        <div class="hero-image" aria-label="S Fashion featured style">
+            <img src="/images/home/hero-woman.png" alt="" onerror="this.style.display='none'; this.parentElement.classList.add('is-fallback');" />
+        </div>
+
+        <div class="hero-circle"></div>
+        <div class="hero-star">*</div>
+    </section>
+
+    <section class="category-section">
+        <div class="section-title">
+            <span>*</span>
+            <h2>Shop by Category</h2>
+            <span>*</span>
+        </div>
+
+        <% if (categories.length > 0) { %>
+            <div class="category-grid category-grid-clean">
+                <% categories.forEach((category) => { %>
+                    <a href="/shop?category=<%= encodeURIComponent(category.slug) %>" class="category-card category-card-clean">
+                        <div class="category-info">
+                            <span>Category</span>
+                            <h3><%= category.name %></h3>
+                            <p><%= Number(category.product_count || 0) %> products</p>
+                        </div>
+                        <i class="ri-arrow-right-line"></i>
+                    </a>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <article class="home-empty-state">
+                <i class="ri-layout-grid-line"></i>
+                <h3>Belum ada kategori aktif</h3>
+                <p>Kategori akan tampil di sini setelah admin mengaktifkannya.</p>
+                <a href="/shop">Browse all products</a>
+            </article>
+        <% } %>
+    </section>
+
+    <section class="product-showcase">
+        <div class="new-arrivals">
+            <div class="product-section-header">
+                <h2>New Arrivals</h2>
+                <a href="/shop?sort=latest">View all <i class="ri-arrow-right-line"></i></a>
+            </div>
+
+            <% if (arrivals.length > 0) { %>
+                <div class="product-grid product-grid-small">
+                    <% arrivals.forEach((product) => { %>
+                        <article class="product-card home-product-card">
+                            <a href="<%= productUrl(product) %>" class="product-image">
+                                <img src="<%= productImage(product) %>" alt="<%= product.name %>" onerror="this.onerror=null;this.src='<%= placeholderImage %>';" />
+                            </a>
+
+                            <div class="product-info">
+                                <small><%= product.category_name || 'S Fashion' %></small>
+                                <h3><%= product.name %></h3>
+                                <p class="home-price-row">
+                                    <span><%= formatRupiah(displayPrice(product)) %></span>
+                                    <% if (hasDiscount(product)) { %>
+                                        <del><%= formatRupiah(product.price) %></del>
+                                    <% } %>
+                                </p>
+                                <p class="home-stock"><%= Number(product.total_stock || 0) > 0 ? `${Number(product.total_stock)} in stock` : 'Out of stock' %></p>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <article class="home-empty-state">
+                    <i class="ri-price-tag-3-line"></i>
+                    <h3>Belum ada produk terbaru</h3>
+                    <p>Produk terbaru akan muncul otomatis dari database.</p>
+                </article>
+            <% } %>
+        </div>
+
+        <div class="featured-collection">
+            <img src="/images/home/collection.png" alt="Spring Serenity" onerror="this.style.display='none';" />
+
+            <div class="collection-content">
+                <span>FEATURED COLLECTION</span>
+                <h2>Spring Serenity</h2>
+                <p>
+                    Soft tones, airy fabrics, and effortless silhouettes.
+                    Your new season wardrobe starts here.
+                </p>
+                <a href="/shop">
+                    Explore Collection
+                    <i class="ri-arrow-right-line"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="best-sellers">
+            <div class="product-section-header">
+                <h2>Featured Picks</h2>
+                <a href="/shop">View all <i class="ri-arrow-right-line"></i></a>
+            </div>
+
+            <% if (featured.length > 0) { %>
+                <div class="product-grid product-grid-large">
+                    <% featured.forEach((product) => { %>
+                        <article class="product-card home-product-card">
+                            <% if (product.is_featured) { %>
+                                <span class="product-badge">Featured</span>
+                            <% } %>
+
+                            <a href="<%= productUrl(product) %>" class="product-image">
+                                <img src="<%= productImage(product) %>" alt="<%= product.name %>" onerror="this.onerror=null;this.src='<%= placeholderImage %>';" />
+                            </a>
+
+                            <div class="product-info">
+                                <small><%= product.category_name || 'S Fashion' %></small>
+                                <h3><%= product.name %></h3>
+                                <p class="home-price-row">
+                                    <span><%= formatRupiah(displayPrice(product)) %></span>
+                                    <% if (hasDiscount(product)) { %>
+                                        <del><%= formatRupiah(product.price) %></del>
+                                    <% } %>
+                                </p>
+                                <p class="home-stock"><%= Number(product.total_stock || 0) > 0 ? `${Number(product.total_stock)} in stock` : 'Out of stock' %></p>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <article class="home-empty-state">
+                    <i class="ri-star-line"></i>
+                    <h3>Belum ada featured product</h3>
+                    <p>Produk pilihan akan tampil setelah tersedia di database.</p>
+                </article>
+            <% } %>
+        </div>
+    </section>
+
+    <section class="benefit-section">
+        <div class="benefit-item">
+            <div class="benefit-icon">
+                <i class="ri-award-line"></i>
+            </div>
+            <div>
+                <h3>Premium Quality</h3>
+                <p>Carefully crafted with high-quality materials built to last.</p>
+            </div>
+        </div>
+
+        <div class="benefit-item">
+            <div class="benefit-icon">
+                <i class="ri-leaf-line"></i>
+            </div>
+            <div>
+                <h3>Comfortable Materials</h3>
+                <p>Soft, breathable fabrics that feel great all day.</p>
+            </div>
+        </div>
+
+        <div class="benefit-item">
+            <div class="benefit-icon">
+                <i class="ri-truck-line"></i>
+            </div>
+            <div>
+                <h3>Fast Delivery</h3>
+                <p>Quick and reliable shipping straight to your door.</p>
+            </div>
+        </div>
+
+        <div class="benefit-item">
+            <div class="benefit-icon">
+                <i class="ri-box-3-line"></i>
+            </div>
+            <div>
+                <h3>Easy Returns</h3>
+                <p>Hassle-free returns within 30 days of purchase.</p>
+            </div>
+        </div>
+    </section>
+</section>

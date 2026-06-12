@@ -1,0 +1,213 @@
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  phone VARCHAR(30) NULL,
+  role ENUM('customer', 'staff', 'admin') NOT NULL DEFAULT 'customer',
+  status ENUM('active', 'inactive', 'blocked') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  slug VARCHAR(150) NOT NULL UNIQUE,
+  description TEXT NULL,
+  image VARCHAR(255) NULL,
+  status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS products (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  category_id BIGINT UNSIGNED NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  slug VARCHAR(180) NOT NULL UNIQUE,
+  description TEXT NULL,
+  price DECIMAL(12,2) NOT NULL,
+  discount_price DECIMAL(12,2) NULL,
+  sku VARCHAR(100) NOT NULL UNIQUE,
+  status ENUM('draft', 'active', 'inactive') NOT NULL DEFAULT 'draft',
+  is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+  created_by BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_products_created_by FOREIGN KEY (created_by) REFERENCES users(id)
+    ON UPDATE CASCADE ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS product_images (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  product_id BIGINT UNSIGNED NOT NULL,
+  image_url VARCHAR(255) NOT NULL,
+  is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id)
+    ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS product_variants (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  product_id BIGINT UNSIGNED NOT NULL,
+  size VARCHAR(20) NOT NULL,
+  color VARCHAR(50) NOT NULL,
+  color_code VARCHAR(20) NULL,
+  stock INT UNSIGNED NOT NULL DEFAULT 0,
+  price_override DECIMAL(12,2) NULL,
+  status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+  variant_sku VARCHAR(120) NOT NULL UNIQUE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_product_variants_product FOREIGN KEY (product_id) REFERENCES products(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT uq_variant_product_size_color UNIQUE (product_id, size, color),
+  INDEX idx_variant_product (product_id),
+  INDEX idx_variant_stock (stock),
+  INDEX idx_variant_status (status)
+);
+
+CREATE TABLE IF NOT EXISTS addresses (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  recipient_name VARCHAR(100) NOT NULL,
+  phone VARCHAR(30) NOT NULL,
+  province VARCHAR(100) NOT NULL,
+  city VARCHAR(100) NOT NULL,
+  district VARCHAR(100) NULL,
+  postal_code VARCHAR(20) NULL,
+  full_address TEXT NOT NULL,
+  is_default BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_addresses_user FOREIGN KEY (user_id) REFERENCES users(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  INDEX idx_addresses_user (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS carts (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  product_variant_id BIGINT UNSIGNED NOT NULL,
+  quantity INT UNSIGNED NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_carts_user FOREIGN KEY (user_id) REFERENCES users(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_carts_variant FOREIGN KEY (product_variant_id) REFERENCES product_variants(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT uq_carts_user_variant UNIQUE (user_id, product_variant_id),
+  INDEX idx_carts_user (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  customer_id BIGINT UNSIGNED NOT NULL,
+  address_id BIGINT UNSIGNED NOT NULL,
+  order_code VARCHAR(100) NOT NULL UNIQUE,
+  invoice_number VARCHAR(100) NULL UNIQUE,
+  subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
+  shipping_cost DECIMAL(12,2) NOT NULL DEFAULT 0,
+  discount_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+  total_amount DECIMAL(12,2) NOT NULL,
+  status ENUM('pending', 'processing', 'shipped', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+  order_status ENUM('pending', 'confirmed', 'packed', 'shipped', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+  payment_status ENUM('unpaid', 'pending_verification', 'paid', 'failed', 'refunded') NOT NULL DEFAULT 'unpaid',
+  courier VARCHAR(100) NULL,
+  tracking_number VARCHAR(100) NULL,
+  notes TEXT NULL,
+  ordered_at DATETIME NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES users(id)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_orders_address FOREIGN KEY (address_id) REFERENCES addresses(id)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  INDEX idx_orders_status (status),
+  INDEX idx_orders_ordered_at (ordered_at),
+  INDEX idx_orders_payment_status (payment_status)
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  order_id BIGINT UNSIGNED NOT NULL,
+  product_id BIGINT UNSIGNED NOT NULL,
+  product_variant_id BIGINT UNSIGNED NOT NULL,
+  product_name VARCHAR(150) NOT NULL,
+  size VARCHAR(20) NOT NULL,
+  color VARCHAR(50) NOT NULL,
+  variant_sku VARCHAR(120) NULL,
+  price DECIMAL(12,2) NOT NULL,
+  quantity INT UNSIGNED NOT NULL,
+  total DECIMAL(12,2) NOT NULL,
+  unit_price DECIMAL(12,2) NOT NULL,
+  subtotal DECIMAL(12,2) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_order_items_variant FOREIGN KEY (product_variant_id) REFERENCES product_variants(id)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  UNIQUE KEY uq_order_variant (order_id, product_variant_id),
+  INDEX idx_order_items_order (order_id),
+  INDEX idx_order_items_product (product_id)
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  order_id BIGINT UNSIGNED NOT NULL UNIQUE,
+  method VARCHAR(100) NOT NULL,
+  payment_method VARCHAR(100) NULL,
+  payment_provider VARCHAR(100) NULL,
+  transaction_id VARCHAR(150) NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  status ENUM('unpaid', 'pending_verification', 'paid', 'failed') NOT NULL DEFAULT 'unpaid',
+  paid_at TIMESTAMP NULL DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_payments_order FOREIGN KEY (order_id) REFERENCES orders(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  INDEX idx_payments_status (status),
+  INDEX idx_payments_paid_at (paid_at)
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  customer_id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NULL,
+  product_id BIGINT UNSIGNED NOT NULL,
+  order_id BIGINT UNSIGNED NOT NULL,
+  rating TINYINT UNSIGNED NOT NULL,
+  message TEXT NULL,
+  comment TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_reviews_customer FOREIGN KEY (customer_id) REFERENCES users(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_reviews_product FOREIGN KEY (product_id) REFERENCES products(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT fk_reviews_order FOREIGN KEY (order_id) REFERENCES orders(id)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT chk_reviews_rating CHECK (rating BETWEEN 1 AND 5),
+  INDEX idx_reviews_created_at (created_at)
+);
+
+CREATE TABLE IF NOT EXISTS vouchers (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  type ENUM('fixed', 'percentage') NOT NULL,
+  value DECIMAL(12,2) NOT NULL,
+  max_discount DECIMAL(12,2) NULL,
+  min_purchase DECIMAL(12,2) NOT NULL DEFAULT 0,
+  usage_limit INT NULL,
+  used_count INT NOT NULL DEFAULT 0,
+  start_date DATETIME NULL,
+  end_date DATETIME NULL,
+  status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

@@ -1,0 +1,44 @@
+<%- include('partials/shell-start', {
+  heading: 'Staff Dashboard',
+  description: 'Operational overview for orders and product stock.'
+}) %>
+
+<section class="staff-grid">
+  <article class="metric-card">
+    <span class="metric-icon"><i class="ri-time-line"></i></span>
+    <h3>Pending Orders</h3>
+    <strong><%= summary.pendingOrders %></strong>
+  </article>
+  <article class="metric-card">
+    <span class="metric-icon"><i class="ri-settings-4-line"></i></span>
+    <h3>Processing Orders</h3>
+    <strong><%= summary.processingOrders %></strong>
+  </article>
+  <article class="metric-card">
+    <span class="metric-icon"><i class="ri-truck-line"></i></span>
+    <h3>Shipped Orders</h3>
+    <strong><%= summary.shippedOrders %></strong>
+  </article>
+  <article class="metric-card">
+    <span class="metric-icon"><i class="ri-error-warning-line"></i></span>
+    <h3>Low Stock</h3>
+    <strong><%= summary.lowStockVariants %></strong>
+  </article>
+  <article class="metric-card">
+    <span class="metric-icon"><i class="ri-close-circle-line"></i></span>
+    <h3>Out of Stock</h3>
+    <strong><%= summary.outOfStockVariants %></strong>
+  </article>
+</section>
+
+<section class="staff-panel">
+  <h2>Quick Links</h2>
+  <p class="panel-subtitle">Jump into daily staff operations.</p>
+  <div class="staff-actions-row">
+    <a href="/staff/orders" class="staff-btn primary"><i class="ri-shopping-cart-2-line"></i>Manage Orders</a>
+    <a href="/staff/stocks" class="staff-btn secondary"><i class="ri-archive-line"></i>Update Stocks</a>
+    <a href="/staff/products" class="staff-btn ghost"><i class="ri-price-tag-3-line"></i>View Products</a>
+  </div>
+</section>
+
+<%- include('partials/shell-end') %>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= pageTitle ? `${pageTitle} | S Fashion` : 'S Fashion' %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/base/variables.css" />
+    <link rel="stylesheet" href="/css/base/reset.css" />
+    <link rel="stylesheet" href="/css/base/utilities.css" />
+    <% const dashboardSkinName = typeof dashboardSkin !== 'undefined' ? dashboardSkin : 'admin'; %>
+    <% if (dashboardSkinName !== 'staff') { %>
+        <link rel="stylesheet" href="/css/admin/admin-tokens.css" />
+        <link rel="stylesheet" href="/css/admin/admin-dashboard.css" />
+        <link rel="stylesheet" href="/css/admin/admin-layout.css" />
+        <link rel="stylesheet" href="/css/admin/admin-sidebar.css" />
+        <link rel="stylesheet" href="/css/admin/admin-topbar.css" />
+        <link rel="stylesheet" href="/css/admin/admin-components.css" />
+    <% } %>
+    <% (typeof pageStyles !== 'undefined' ? pageStyles : []).forEach((href) => { %>
+        <link rel="stylesheet" href="<%= href %>" />
+    <% }); %>
+</head>
+
+<body>
+    <main class="dashboard-layout">
+        <%- include('../layouts/partials/flash') %>
+        <%- body %>
+    </main>
+    <script src="/js/dashboard.js"></script>
+    <% (typeof pageScripts !== 'undefined' ? pageScripts : []).forEach((src) => { %>
+        <script src="<%= src %>"></script>
+    <% }); %>
+</body>
+
+</html>

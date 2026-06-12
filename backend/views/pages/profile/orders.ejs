@@ -1,0 +1,55 @@
+<%- include('_shell-start', {
+  heading: 'Order History',
+  subtitle: 'Lihat riwayat order tanpa membuat overview terasa penuh.'
+}) %>
+
+<%
+const orderList = orders || [];
+const pager = pagination || { page: 1, totalPages: 1, total: 0 };
+%>
+
+<section class="profile-card">
+  <div class="profile-card-head">
+    <div><span class="profile-card-label">Orders</span><h2>Order History</h2></div>
+    <span class="profile-card-note"><%= Number(pager.total || 0).toLocaleString('id-ID') %> orders</span>
+  </div>
+
+  <% if (orderList.length > 0) { %>
+    <div class="profile-order-list">
+      <% orderList.forEach((order) => { %>
+        <article class="profile-order-row">
+          <div>
+            <strong><%= order.invoice_number || order.order_code || `Order #${order.id}` %></strong>
+            <span><%= order.order_code || '-' %> &bull; <%= formatDate(order.ordered_at || order.created_at) %></span>
+          </div>
+          <div class="profile-order-status">
+            <span class="profile-status profile-status-<%= order.status || 'unknown' %>"><%= formatStatus(order.status) %></span>
+            <small><%= formatStatus(order.payment_status) %></small>
+          </div>
+          <strong class="profile-order-total"><%= formatRupiah(order.total_amount) %></strong>
+        </article>
+      <% }); %>
+    </div>
+
+    <% if (pager.totalPages > 1) { %>
+      <nav class="profile-pagination" aria-label="Order history pagination">
+        <% if (pager.page > 1) { %>
+          <a href="/profile/orders?page=<%= pager.page - 1 %>" class="sf-btn sf-btn-secondary">Previous</a>
+        <% } %>
+        <span>Page <%= pager.page %> of <%= pager.totalPages %></span>
+        <% if (pager.page < pager.totalPages) { %>
+          <a href="/profile/orders?page=<%= pager.page + 1 %>" class="sf-btn sf-btn-secondary">Next</a>
+        <% } %>
+      </nav>
+    <% } %>
+  <% } else { %>
+    <div class="profile-empty">
+      <i class="ri-shopping-bag-line"></i>
+      <h3>Belum ada order</h3>
+      <p>Order kamu akan muncul di sini setelah checkout berhasil.</p>
+      <a href="/shop" class="sf-btn sf-btn-secondary">Browse Products</a>
+    </div>
+  <% } %>
+</section>
+
+<%- include('_shell-end') %>

@@ -1,0 +1,111 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatNumber = (value) => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const formatValue = (voucher) => voucher.type === 'percentage' ? `${formatNumber(voucher.value)}%` : formatRupiah(voucher.value);
+const formatUsage = (voucher) => `${Number(voucher.used_count || 0)} / ${voucher.usage_limit ? Number(voucher.usage_limit) : 'Unlimited'}`;
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.status) qsBase.set('status', filters.status);
+if (filters.type) qsBase.set('type', filters.type);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Coupons',
+  description: 'Manage discount vouchers.'
+}) %>
+
+<section class="voucher-page">
+  <section class="crud-panel voucher-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/coupons" class="crud-filter-form voucher-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Coupon code" />
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <% statusOptions.forEach((status) => { %>
+              <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <label>
+          <span>Type</span>
+          <select name="type">
+            <option value="">All Types</option>
+            <% typeOptions.forEach((type) => { %>
+              <option value="<%= type %>" <%= filters.type === type ? 'selected' : '' %>><%= titleCase(type) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/coupons" class="crud-btn ghost">Reset</a>
+      </form>
+      <a href="/admin/coupons/create" class="crud-btn primary"><i class="ri-coupon-2-line"></i>Add Coupon</a>
+    </div>
+
+    <% if (!vouchers || vouchers.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-coupon-2-line"></i>
+        <h2>Belum ada coupon</h2>
+        <p>Buat voucher discount pertama untuk campaign S Fashion.</p>
+        <a href="/admin/coupons/create" class="crud-btn primary">Create Coupon</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table voucher-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Type</th>
+              <th>Value</th>
+              <th>Max Discount</th>
+              <th>Min Purchase</th>
+              <th>Usage</th>
+              <th>Valid Period</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% vouchers.forEach((voucher) => { %>
+              <tr>
+                <td data-label="Code"><strong class="voucher-code"><%= voucher.code %></strong></td>
+                <td data-label="Type"><span class="voucher-badge type-<%= voucher.type %>"><%= titleCase(voucher.type) %></span></td>
+                <td data-label="Value"><strong><%= formatValue(voucher) %></strong></td>
+                <td data-label="Max Discount"><%= voucher.max_discount === null ? '-' : formatRupiah(voucher.max_discount) %></td>
+                <td data-label="Min Purchase"><%= formatRupiah(voucher.min_purchase) %></td>
+                <td data-label="Usage"><%= formatUsage(voucher) %></td>
+                <td data-label="Valid Period">
+                  <strong><%= formatDate(voucher.start_date) %></strong>
+                  <small>to <%= formatDate(voucher.end_date) %></small>
+                </td>
+                <td data-label="Status"><span class="voucher-badge status-<%= voucher.status %>"><%= titleCase(voucher.status) %></span></td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <a href="/admin/coupons/<%= voucher.id %>/edit" class="crud-btn tiny primary">Edit</a>
+                    <form method="POST" action="/admin/coupons/<%= voucher.id %>/toggle-status">
+                      <button type="submit" class="crud-btn tiny ghost"><%= voucher.status === 'active' ? 'Deactivate' : 'Activate' %></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/coupons?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

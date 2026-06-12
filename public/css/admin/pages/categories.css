@@ -1,0 +1,511 @@
+.admin-crud-page .crud-panel {
+  background: #fff;
+  border: 1px solid #e8edf6;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 16px 36px rgba(28, 21, 49, 0.06);
+}
+
+.crud-actions-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.crud-filter-form,
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.crud-filter-form label,
+.crud-form label {
+  display: grid;
+  gap: 7px;
+  color: #1c1531;
+  font-weight: 700;
+}
+
+.crud-filter-form span,
+.crud-form span {
+  font-size: 12px;
+  color: #68728a;
+}
+
+.crud-filter-form input,
+.crud-filter-form select,
+.crud-form input,
+.crud-form select,
+.crud-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dfe6f2;
+  border-radius: 12px;
+  padding: 11px 12px;
+  color: #1c1531;
+  background: #fff;
+  font: inherit;
+}
+
+.crud-form textarea {
+  resize: vertical;
+}
+
+.crud-btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 11px 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.crud-btn.primary {
+  background: #1c1531;
+  color: #fff;
+}
+
+.crud-btn.secondary {
+  background: #5b7daf;
+  color: #fff;
+}
+
+.crud-btn.ghost {
+  background: #f7f8fc;
+  color: #1c1531;
+  border: 1px solid #e3e8f3;
+}
+
+.crud-btn.tiny {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.crud-table-wrap {
+  overflow-x: auto;
+}
+
+.crud-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.crud-table th,
+.crud-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #edf1f7;
+  text-align: left;
+  vertical-align: top;
+}
+
+.crud-table th {
+  color: #68728a;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.crud-table td strong,
+.crud-table td small {
+  display: block;
+}
+
+.crud-table td small {
+  margin-top: 5px;
+  color: #7a8499;
+}
+
+.status-badge {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.status-active {
+  color: #176b43;
+  background: #e5f7ee;
+}
+
+.status-inactive,
+.status-draft {
+  color: #8a5a12;
+  background: #fff2d8;
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crud-empty {
+  text-align: center;
+  padding: 54px 16px;
+  border: 1px dashed #dfe6f2;
+  border-radius: 18px;
+  background: #fbfcff;
+}
+
+.crud-empty i {
+  font-size: 42px;
+  color: #e991a8;
+}
+
+.crud-empty h2 {
+  margin: 12px 0 6px;
+}
+
+.crud-empty p {
+  margin: 0 0 18px;
+  color: #68728a;
+}
+
+.form-panel {
+  max-width: 960px;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.field-error {
+  color: #c0392b;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .crud-actions-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crud-filter-form,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crud-table thead {
+    display: none;
+  }
+
+  .crud-table,
+  .crud-table tbody,
+  .crud-table tr,
+  .crud-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .crud-table tr {
+    border: 1px solid #edf1f7;
+    border-radius: 16px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  .crud-table td {
+    border: 0;
+    padding: 9px 6px;
+  }
+
+  .crud-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: #7a8499;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+}
+
+/* Modern admin CRUD system polish */
+.admin-crud-page {
+  --crud-bg: var(--sf-bg, #fbf7f8);
+  --crud-surface: var(--sf-white, #ffffff);
+  --crud-border: var(--sf-border, rgba(28, 21, 49, 0.12));
+  --crud-text: var(--sf-navy, #1c1531);
+  --crud-muted: var(--sf-muted, #68728a);
+  --crud-pink: var(--sf-pink, #e991a8);
+  --crud-pink-soft: var(--sf-pink-soft, #f4e1e1);
+  --crud-denim: var(--sf-blue-denim, #5b7daf);
+  --crud-radius: var(--sf-radius-lg, 24px);
+  --crud-shadow: var(--sf-shadow-sm, 0 10px 24px rgba(28, 21, 49, 0.06));
+}
+
+.admin-crud-page *,
+.admin-crud-page *::before,
+.admin-crud-page *::after {
+  box-sizing: border-box;
+}
+
+.admin-crud-page .admin-content {
+  gap: 18px;
+}
+
+.admin-crud-page .crud-panel,
+.admin-crud-page .form-panel,
+.admin-crud-page .order-card,
+.admin-crud-page .action-card,
+.admin-crud-page .payment-card,
+.admin-crud-page .review-card,
+.admin-crud-page .report-card,
+.admin-crud-page .audit-card {
+  border: 1px solid var(--crud-border);
+  border-radius: var(--crud-radius);
+  background: var(--crud-surface);
+  box-shadow: var(--crud-shadow);
+}
+
+.admin-crud-page .crud-panel {
+  padding: clamp(16px, 2vw, 24px);
+}
+
+.crud-actions-row {
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(28, 21, 49, 0.08);
+}
+
+.crud-actions-row h2,
+.crud-actions-row h1,
+.panel-heading-row h3 {
+  margin: 0;
+  color: var(--crud-text);
+  letter-spacing: -0.03em;
+}
+
+.crud-actions-row p,
+.panel-heading-row p {
+  color: var(--crud-muted);
+}
+
+.crud-filter-form {
+  align-items: end;
+}
+
+.crud-filter-form label,
+.crud-form label,
+.compact-action-form label {
+  min-width: 0;
+  color: var(--crud-text);
+}
+
+.crud-filter-form input,
+.crud-filter-form select,
+.crud-form input,
+.crud-form select,
+.crud-form textarea,
+.compact-action-form input,
+.compact-action-form select,
+.stock-update-form input {
+  min-height: 44px;
+  border-color: var(--crud-border);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--crud-text);
+  font-weight: 650;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.crud-filter-form input:focus,
+.crud-filter-form select:focus,
+.crud-form input:focus,
+.crud-form select:focus,
+.crud-form textarea:focus,
+.compact-action-form input:focus,
+.compact-action-form select:focus,
+.stock-update-form input:focus {
+  outline: none;
+  border-color: rgba(91, 125, 175, .55);
+  box-shadow: 0 0 0 4px rgba(99, 163, 188, .14);
+}
+
+.crud-btn {
+  min-height: 42px;
+  border-radius: 14px;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.crud-btn:hover {
+  transform: translateY(-1px);
+}
+
+.crud-btn.primary {
+  background: var(--crud-text);
+  box-shadow: 0 12px 24px rgba(28, 21, 49, .14);
+}
+
+.crud-btn.secondary {
+  background: var(--crud-denim);
+  box-shadow: 0 10px 20px rgba(91, 125, 175, .18);
+}
+
+.crud-btn.ghost {
+  border-color: var(--crud-border);
+  background: #fff;
+}
+
+.crud-btn.ghost:hover {
+  border-color: rgba(233, 145, 168, .45);
+  background: var(--crud-pink-soft);
+}
+
+.crud-table-wrap {
+  width: 100%;
+  border: 1px solid rgba(28, 21, 49, 0.07);
+  border-radius: 20px;
+  background: #fff;
+  overflow: auto;
+}
+
+.crud-table {
+  min-width: 760px;
+}
+
+.crud-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fbfcff;
+  color: var(--crud-muted);
+}
+
+.crud-table th,
+.crud-table td {
+  border-bottom-color: rgba(28, 21, 49, 0.07);
+}
+
+.crud-table tbody tr {
+  transition: background .16s ease;
+}
+
+.crud-table tbody tr:hover {
+  background: #fff8fa;
+}
+
+.crud-table td {
+  color: var(--crud-text);
+}
+
+.crud-table td small {
+  color: var(--crud-muted);
+}
+
+.table-actions {
+  align-items: center;
+}
+
+.status-badge,
+.order-badge,
+.inventory-badge,
+.payment-badge,
+.review-rating-badge {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5);
+}
+
+.crud-empty,
+.crud-empty-state {
+  border-color: rgba(28, 21, 49, 0.16);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(244, 225, 225, .75), transparent 36%),
+    #fff;
+}
+
+.crud-pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.crud-pagination a {
+  min-width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--crud-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--crud-text);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.crud-pagination a:hover,
+.crud-pagination a.is-active {
+  border-color: rgba(233, 145, 168, .5);
+  background: var(--crud-pink-soft);
+  color: var(--crud-text);
+}
+
+@media (max-width: 900px) {
+  .admin-crud-page .crud-panel {
+    padding: 14px;
+  }
+
+  .crud-actions-row {
+    align-items: stretch;
+  }
+
+  .crud-filter-form {
+    gap: 12px;
+  }
+
+  .crud-filter-form .crud-btn,
+  .form-actions .crud-btn,
+  .table-actions .crud-btn {
+    width: 100%;
+  }
+
+  .crud-table-wrap {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .crud-table {
+    min-width: 0;
+  }
+
+  .crud-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .crud-table tr {
+    border: 1px solid var(--crud-border);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: var(--crud-shadow);
+  }
+
+  .crud-table tbody tr:hover {
+    background: #fff;
+  }
+
+  .crud-table td {
+    padding: 10px 8px;
+  }
+}

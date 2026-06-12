@@ -1,0 +1,12 @@
+<%- include('../partials/shell-start', {
+  heading: 'Create Category',
+  description: 'Tambahkan kategori baru untuk mengelompokkan produk storefront.'
+}) %>
+
+<section class="crud-panel form-panel">
+  <form method="POST" action="/admin/categories" class="crud-form">
+    <%- include('./form', { old, formErrors, submitLabel: 'Create Category' }) %>
+  </form>
+</section>
+
+<%- include('../partials/shell-end') %>

@@ -1,0 +1,48 @@
+<%
+const staffMenus = [
+  { key: 'dashboard', href: '/staff/dashboard', icon: 'ri-home-5-line', label: 'Dashboard' },
+  { key: 'orders', href: '/staff/orders', icon: 'ri-shopping-cart-2-line', label: 'Orders' },
+  { key: 'stocks', href: '/staff/stocks', icon: 'ri-archive-line', label: 'Stocks' },
+  { key: 'products', href: '/staff/products', icon: 'ri-price-tag-3-line', label: 'Products' }
+];
+%>
+
+<section class="staff-dashboard">
+  <aside class="staff-sidebar">
+    <div class="staff-brand">
+      <span class="staff-logo"><i class="ri-hanger-line"></i></span>
+      <div>
+        <h2>S Fashion</h2>
+        <p>STAFF</p>
+      </div>
+    </div>
+
+    <nav class="staff-menu">
+      <% staffMenus.forEach((menu) => { %>
+        <a href="<%= menu.href %>" class="<%= activeMenu === menu.key ? 'is-active' : '' %>">
+          <i class="<%= menu.icon %>"></i>
+          <span><%= menu.label %></span>
+        </a>
+      <% }); %>
+    </nav>
+
+    <div class="staff-user">
+      <span><%= user && user.name ? user.name.charAt(0).toUpperCase() : 'S' %></span>
+      <div>
+        <strong><%= user ? user.name : 'Staff' %></strong>
+        <small>Staff Member</small>
+      </div>
+    </div>
+
+    <form method="POST" action="/logout" class="staff-logout-form">
+      <button type="submit"><i class="ri-logout-box-r-line"></i> Logout</button>
+    </form>
+  </aside>
+
+  <div class="staff-content">
+    <header class="staff-header">
+      <div>
+        <h1><%= heading %></h1>
+        <p><%= description %></p>
+      </div>
+    </header>

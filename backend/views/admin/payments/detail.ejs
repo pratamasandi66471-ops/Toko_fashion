@@ -1,0 +1,86 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const canVerify = payment.payment_status !== successPaymentStatus && !['cancelled', 'completed'].includes(payment.order_status);
+const canReject = ![successPaymentStatus, failedPaymentStatus].includes(payment.payment_status);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Payment Detail',
+  description: 'Review payment, order, and customer information before verification.'
+}) %>
+
+<section class="payment-detail-page">
+  <div class="payment-detail-header">
+    <div>
+      <a href="/admin/payments" class="back-link"><i class="ri-arrow-left-line"></i>Back to Payments</a>
+      <h2><%= payment.invoice_number || payment.order_code || `Payment #${payment.id}` %></h2>
+      <p><%= payment.order_code || '-' %></p>
+    </div>
+    <div class="detail-badges">
+      <span class="payment-badge payment-<%= payment.payment_status %>"><%= titleCase(payment.payment_status) %></span>
+      <span class="payment-badge order-<%= payment.order_status %>"><%= titleCase(payment.order_status) %></span>
+    </div>
+  </div>
+
+  <div class="payment-detail-grid">
+    <article class="payment-card payment-summary-card">
+      <h3>Payment Summary</h3>
+      <dl class="summary-list">
+        <div><dt>Method</dt><dd><%= titleCase(payment.display_method || '-') %></dd></div>
+        <div><dt>Provider</dt><dd><%= payment.payment_provider || '-' %></dd></div>
+        <div><dt>Transaction ID</dt><dd><%= payment.transaction_id || '-' %></dd></div>
+        <div class="summary-total"><dt>Amount</dt><dd><%= formatRupiah(payment.amount) %></dd></div>
+        <div><dt>Status</dt><dd><%= titleCase(payment.payment_status) %></dd></div>
+        <div><dt>Paid At</dt><dd><%= formatDate(payment.paid_at) %></dd></div>
+        <div><dt>Created At</dt><dd><%= formatDate(payment.created_at) %></dd></div>
+      </dl>
+    </article>
+
+    <article class="payment-card">
+      <h3>Order Summary</h3>
+      <p class="info-line"><strong><%= payment.invoice_number || '-' %></strong></p>
+      <p class="info-line">Order Code: <%= payment.order_code || '-' %></p>
+      <p class="info-line">Total: <%= formatRupiah(payment.total_amount) %></p>
+      <p class="info-line">Order Status: <span class="payment-badge order-<%= payment.order_status %>"><%= titleCase(payment.order_status) %></span></p>
+      <p class="info-line">Payment Status: <span class="payment-badge orderpay-<%= payment.order_payment_status || 'unpaid' %>"><%= titleCase(payment.order_payment_status || 'unpaid') %></span></p>
+      <p class="info-line">Ordered At: <%= formatDate(payment.ordered_at || payment.order_created_at) %></p>
+      <a href="/admin/orders/<%= payment.order_id %>" class="inline-link">Open order detail</a>
+    </article>
+
+    <article class="payment-card">
+      <h3>Customer</h3>
+      <p class="info-line"><strong><%= payment.customer_name || 'Unknown Customer' %></strong></p>
+      <p class="info-line"><i class="ri-mail-line"></i><%= payment.customer_email || '-' %></p>
+      <p class="info-line"><i class="ri-phone-line"></i><%= payment.customer_phone || '-' %></p>
+    </article>
+  </div>
+
+  <section class="payment-actions-grid">
+    <article class="payment-card action-card">
+      <h3>Verification Actions</h3>
+      <p>Verify akan mengubah payment menjadi paid dan order pending menjadi processing. Reject tidak otomatis cancel order.</p>
+      <div class="action-row">
+        <% if (canVerify) { %>
+          <form method="POST" action="/admin/payments/<%= payment.id %>/verify">
+            <button type="submit" class="crud-btn primary"><i class="ri-check-line"></i>Verify Payment</button>
+          </form>
+        <% } %>
+        <% if (canReject) { %>
+          <form method="POST" action="/admin/payments/<%= payment.id %>/reject">
+            <button type="submit" class="crud-btn danger"><i class="ri-close-line"></i>Reject Payment</button>
+          </form>
+        <% } %>
+        <% if (!canVerify && !canReject) { %>
+          <span class="muted-action">Tidak ada action tersedia untuk status payment ini.</span>
+        <% } %>
+      </div>
+      <% if (['cancelled', 'completed'].includes(payment.order_status) && payment.payment_status !== successPaymentStatus) { %>
+        <p class="warning-note">Payment tidak bisa diverifikasi karena order sudah <%= payment.order_status %>.</p>
+      <% } %>
+    </article>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

@@ -1,0 +1,151 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const canCancel = !['completed', 'cancelled'].includes(order.status);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Order Detail',
+  description: 'Lihat ringkasan order, customer, payment, items, dan proses pengiriman.'
+}) %>
+
+<section class="order-detail-page">
+  <div class="order-detail-header">
+    <div>
+      <a href="/admin/orders" class="back-link"><i class="ri-arrow-left-line"></i>Back to Orders</a>
+      <h2><%= order.invoice_number || order.order_code || `Order #${order.id}` %></h2>
+      <p><%= order.order_code || '-' %></p>
+    </div>
+    <div class="detail-badges">
+      <span class="order-badge order-<%= order.status %>"><%= titleCase(order.status) %></span>
+      <span class="order-badge payment-<%= order.display_payment_status || 'unpaid' %>"><%= titleCase(order.display_payment_status || 'unpaid') %></span>
+    </div>
+  </div>
+
+  <div class="order-detail-grid">
+    <article class="order-card order-summary-card">
+      <h3>Order Summary</h3>
+      <dl class="summary-list">
+        <div><dt>Subtotal</dt><dd><%= formatRupiah(order.subtotal) %></dd></div>
+        <div><dt>Shipping</dt><dd><%= formatRupiah(order.shipping_cost) %></dd></div>
+        <div><dt>Discount</dt><dd><%= formatRupiah(order.discount_amount) %></dd></div>
+        <div class="summary-total"><dt>Total</dt><dd><%= formatRupiah(order.total_amount) %></dd></div>
+        <div><dt>Ordered At</dt><dd><%= formatDate(order.ordered_at || order.created_at) %></dd></div>
+        <div><dt>Updated At</dt><dd><%= formatDate(order.updated_at) %></dd></div>
+      </dl>
+      <div class="notes-box">
+        <strong>Notes</strong>
+        <p><%= order.notes || 'Tidak ada catatan.' %></p>
+      </div>
+    </article>
+
+    <article class="order-card">
+      <h3>Customer</h3>
+      <p class="info-line"><strong><%= order.customer_name || 'Unknown Customer' %></strong></p>
+      <p class="info-line"><i class="ri-mail-line"></i><%= order.customer_email || '-' %></p>
+      <p class="info-line"><i class="ri-phone-line"></i><%= order.customer_phone || '-' %></p>
+    </article>
+
+    <article class="order-card">
+      <h3>Shipping Address</h3>
+      <p class="info-line"><strong><%= order.recipient_name || '-' %></strong></p>
+      <p class="info-line"><i class="ri-phone-line"></i><%= order.address_phone || '-' %></p>
+      <p class="info-line"><%= [order.district, order.city, order.province, order.postal_code].filter(Boolean).join(', ') || '-' %></p>
+      <p class="address-text"><%= order.full_address || '-' %></p>
+    </article>
+
+    <article class="order-card">
+      <h3>Payment</h3>
+      <p class="info-line"><strong><%= titleCase(order.payment_method || order.payment_method_alt || '-') %></strong></p>
+      <p class="info-line">Provider: <%= order.payment_provider || '-' %></p>
+      <p class="info-line">Transaction: <%= order.transaction_id || '-' %></p>
+      <p class="info-line">Amount: <%= formatRupiah(order.payment_amount || order.total_amount) %></p>
+      <p class="info-line">Paid At: <%= formatDate(order.payment_paid_at) %></p>
+    </article>
+  </div>
+
+  <section class="crud-panel order-items-panel">
+    <div class="panel-heading-row">
+      <div>
+        <h3>Order Items</h3>
+        <p><%= items.length %> item(s) in this order.</p>
+      </div>
+    </div>
+
+    <div class="crud-table-wrap">
+      <table class="crud-table order-items-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Variant SKU</th>
+            <th>Size</th>
+            <th>Color</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% items.forEach((item) => { %>
+            <tr>
+              <td data-label="Product"><strong><%= item.product_name %></strong></td>
+              <td data-label="Variant SKU"><%= item.variant_sku || '-' %></td>
+              <td data-label="Size"><%= item.size || '-' %></td>
+              <td data-label="Color"><%= item.color || '-' %></td>
+              <td data-label="Price"><%= formatRupiah(item.display_price) %></td>
+              <td data-label="Qty"><%= item.quantity %></td>
+              <td data-label="Total"><strong><%= formatRupiah(item.display_total) %></strong></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="order-actions-grid">
+    <article class="order-card action-card">
+      <h3>Update Order Status</h3>
+      <p>Status utama admin memakai <code>orders.status</code> dan disinkronkan ke <code>orders.order_status</code>.</p>
+      <form method="POST" action="/admin/orders/<%= order.id %>/status" class="crud-form compact-action-form">
+        <label>
+          <span>Status</span>
+          <select name="status" required>
+            <% allowedOrderStatuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= order.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn primary">Update Status</button>
+      </form>
+    </article>
+
+    <article class="order-card action-card">
+      <h3>Tracking</h3>
+      <p>Untuk MVP, tracking dapat diisi kapan saja dan tidak wajib untuk status shipped/completed.</p>
+      <form method="POST" action="/admin/orders/<%= order.id %>/tracking" class="crud-form compact-action-form">
+        <label>
+          <span>Courier</span>
+          <input type="text" name="courier" value="<%= order.courier || '' %>" placeholder="JNE, J&T, SiCepat" />
+        </label>
+        <label>
+          <span>Tracking Number</span>
+          <input type="text" name="tracking_number" value="<%= order.tracking_number || '' %>" placeholder="Receipt number" />
+        </label>
+        <button type="submit" class="crud-btn secondary">Save Tracking</button>
+      </form>
+    </article>
+
+    <% if (canCancel) { %>
+      <article class="order-card action-card danger-card">
+        <h3>Cancel Order</h3>
+        <p>Cancel tidak melakukan restock otomatis pada MVP ini.</p>
+        <form method="POST" action="/admin/orders/<%= order.id %>/cancel">
+          <button type="submit" class="crud-btn danger">Cancel Order</button>
+        </form>
+      </article>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

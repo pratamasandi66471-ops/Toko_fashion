@@ -1,0 +1,129 @@
+<div class="promo-bar">
+    <div class="promo-content">
+        <span class="promo-icon">*</span>
+        <span>Free shipping on orders over Rp300.000</span>
+        <span class="promo-divider"></span>
+        <span>
+            <strong>10% off</strong> your first order - use code:
+            <b>WELCOME10</b>
+        </span>
+    </div>
+</div>
+
+<!-- Navbar -->
+<header class="navbar-wrapper">
+    <nav class="navbar">
+        <a href="/" class="logo">
+            S <span>Fashion</span>
+        </a>
+
+        <ul class="nav-menu">
+            <li><a href="/shop?category=women">Women</a></li>
+            <li><a href="/shop?category=men">Men</a></li>
+            <li><a href="/shop?category=dresses">Dresses</a></li>
+            <li><a href="/shop?category=tops">Tops</a></li>
+            <li><a href="/shop?category=accessories">Accessories</a></li>
+            <li><a href="/shop?sort=latest">New In</a></li>
+            <li><a href="/shop?category=sale">Sale</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <form action="/shop" method="GET" class="search-box">
+                <input type="text" name="q" placeholder="Search for products..." autocomplete="off" />
+                <button type="submit" aria-label="Search">
+                    <i class="ri-search-line"></i>
+                </button>
+            </form>
+
+            <a href="/shop" class="icon-link wishlist-link" aria-label="Browse products">
+                <i class="ri-heart-line"></i>
+            </a>
+
+            <a href="/cart" class="icon-link cart-icon" aria-label="Cart">
+                <i class="ri-shopping-bag-line"></i>
+                <span class="cart-count">
+                    <%= typeof cartCount !== 'undefined' ? cartCount : 2 %>
+                </span>
+            </a>
+
+            <% if (user) { %>
+                <% const dashboardUrl = user.role === 'admin' ? '/admin/dashboard' : user.role === 'staff' ? '/staff/dashboard' : '/profile'; %>
+                <% if (user.role === 'admin' || user.role === 'staff') { %>
+                    <a href="<%= dashboardUrl %>" class="shop-btn nav-cta">Dashboard</a>
+                <% } else { %>
+                    <a href="/shop" class="shop-btn nav-cta">Shop Now</a>
+                <% } %>
+
+                <div class="account-menu">
+                    <button type="button" class="user-pill" id="accountMenuBtn" aria-expanded="false" aria-controls="accountDropdown">
+                        <i class="ri-user-3-line"></i>
+                        <span><%= user.name %></span>
+                        <i class="ri-arrow-down-s-line"></i>
+                    </button>
+
+                    <div class="account-dropdown" id="accountDropdown">
+                        <a href="<%= dashboardUrl %>">
+                            <i class="ri-user-settings-line"></i>
+                            <span><%= user.role === 'customer' ? 'My Profile' : 'Dashboard' %></span>
+                        </a>
+                        <% if (user.role === 'customer') { %>
+                            <a href="/shop">
+                                <i class="ri-store-2-line"></i>
+                                <span>Shop Now</span>
+                            </a>
+                        <% } %>
+                        <form action="/logout" method="POST" class="logout-form">
+                            <button type="submit" class="logout-btn">
+                                <i class="ri-logout-box-r-line"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <% } else { %>
+                <a href="/login" class="login-link">Login</a>
+                <a href="/shop" class="shop-btn nav-cta">Shop Now</a>
+            <% } %>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Menu">
+                <i class="ri-menu-line"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <form action="/shop" method="GET" class="mobile-search-box">
+            <input type="text" name="q" placeholder="Search products..." autocomplete="off" />
+            <button type="submit" aria-label="Search">
+                <i class="ri-search-line"></i>
+            </button>
+        </form>
+
+        <a href="/shop?category=women">Women</a>
+        <a href="/shop?category=men">Men</a>
+        <a href="/shop?category=dresses">Dresses</a>
+        <a href="/shop?category=tops">Tops</a>
+        <a href="/shop?category=accessories">Accessories</a>
+        <a href="/shop?sort=latest">New In</a>
+        <a href="/shop?category=sale">Sale</a>
+        <a href="/cart">Cart</a>
+
+        <% if (user) { %>
+            <% if (user.role === 'admin') { %>
+                <a href="/admin/dashboard">Admin Dashboard</a>
+            <% } else if (user.role === 'staff') { %>
+                <a href="/staff/dashboard">Staff Dashboard</a>
+            <% } else { %>
+                <a href="/profile">My Profile</a>
+            <% } %>
+            <form action="/logout" method="POST" class="mobile-logout-form">
+                <button type="submit">Logout</button>
+            </form>
+        <% } else { %>
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+        <% } %>
+    </div>
+</header>
+
+<script src="/js/navbar.js"></script>

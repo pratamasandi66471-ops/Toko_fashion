@@ -1,0 +1,12 @@
+<%- include('../partials/shell-start', {
+  heading: 'Edit Category',
+  description: `Perbarui kategori ${category.name}.`
+}) %>
+
+<section class="crud-panel form-panel">
+  <form method="POST" action="/admin/categories/<%= category.id %>/update" class="crud-form">
+    <%- include('./form', { old, formErrors, submitLabel: 'Update Category' }) %>
+  </form>
+</section>
+
+<%- include('../partials/shell-end') %>

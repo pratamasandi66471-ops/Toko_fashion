@@ -1,0 +1,44 @@
+<%
+const customer = profile || {};
+const memberInitial = (customer.name || customer.email || 'C').charAt(0).toUpperCase();
+const profileMenus = [
+  { key: 'overview', href: '/profile', icon: 'ri-dashboard-line', label: 'Overview' },
+  { key: 'info', href: '/profile/info', icon: 'ri-user-3-line', label: 'Personal Info' },
+  { key: 'addresses', href: '/profile/addresses', icon: 'ri-map-pin-line', label: 'Address Book' },
+  { key: 'orders', href: '/profile/orders', icon: 'ri-shopping-bag-3-line', label: 'Order History' },
+  { key: 'security', href: '/profile/security', icon: 'ri-lock-password-line', label: 'Security' },
+];
+%>
+
+<section class="profile-page">
+  <div class="sf-container profile-shell">
+    <header class="profile-header">
+      <div>
+        <span class="profile-eyebrow">Customer Account</span>
+        <h1><%= heading || 'My Profile' %></h1>
+        <p><%= subtitle || 'Kelola akun S Fashion kamu dengan lebih rapi.' %></p>
+      </div>
+      <a href="/shop" class="sf-btn sf-btn-primary">Continue Shopping</a>
+    </header>
+
+    <div class="profile-account-layout">
+      <aside class="profile-nav-panel">
+        <div class="profile-nav-user">
+          <div class="profile-avatar"><%= memberInitial %></div>
+          <div>
+            <h2><%= customer.name || 'Customer' %></h2>
+            <p><%= customer.email || '-' %></p>
+          </div>
+        </div>
+
+        <nav class="profile-menu" aria-label="Customer account navigation">
+          <% profileMenus.forEach((menu) => { %>
+            <a href="<%= menu.href %>" class="<%= activeProfileMenu === menu.key ? 'is-active' : '' %>">
+              <i class="<%= menu.icon %>"></i>
+              <span><%= menu.label %></span>
+            </a>
+          <% }); %>
+        </nav>
+      </aside>
+
+      <main class="profile-main-panel">

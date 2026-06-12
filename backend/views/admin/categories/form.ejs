@@ -1,0 +1,38 @@
+<div class="form-grid">
+  <label>
+    <span>Name</span>
+    <input type="text" name="name" value="<%= old.name || '' %>" placeholder="Women" required />
+    <% if (formErrors.name) { %><small class="field-error"><%= formErrors.name %></small><% } %>
+  </label>
+
+  <label>
+    <span>Slug</span>
+    <input type="text" name="slug" value="<%= old.slug || '' %>" placeholder="Auto generated if empty" />
+    <% if (formErrors.slug) { %><small class="field-error"><%= formErrors.slug %></small><% } %>
+  </label>
+
+  <label>
+    <span>Status</span>
+    <select name="status">
+      <option value="active" <%= old.status === 'active' ? 'selected' : '' %>>Active</option>
+      <option value="inactive" <%= old.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+    </select>
+    <% if (formErrors.status) { %><small class="field-error"><%= formErrors.status %></small><% } %>
+  </label>
+
+  <label>
+    <span>Image URL</span>
+    <input type="text" name="image" value="<%= old.image || '' %>" placeholder="/images/categories/women.jpg" />
+    <% if (formErrors.image) { %><small class="field-error"><%= formErrors.image %></small><% } %>
+  </label>
+
+  <label class="full-span">
+    <span>Description</span>
+    <textarea name="description" rows="5" placeholder="Short category description"><%= old.description || '' %></textarea>
+  </label>
+</div>
+
+<div class="form-actions">
+  <a href="/admin/categories" class="crud-btn ghost">Cancel</a>
+  <button type="submit" class="crud-btn primary"><%= submitLabel %></button>
+</div>

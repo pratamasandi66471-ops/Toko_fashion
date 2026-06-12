@@ -1,0 +1,114 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Edit Product',
+  description: `Perbarui produk ${product.name}, variants, dan gambar.`
+}) %>
+
+<section class="crud-panel form-panel product-form-panel">
+  <form method="POST" action="/admin/products/<%= product.id %>/update" class="crud-form">
+    <%- include('./form', { old, categories, formErrors }) %>
+    <div class="form-actions">
+      <a href="/admin/products" class="crud-btn ghost">Back</a>
+      <button type="submit" class="crud-btn primary">Update Product</button>
+    </div>
+  </form>
+</section>
+
+<section class="crud-panel split-panel">
+  <article class="sub-panel">
+    <div class="sub-panel-head">
+      <h2>Images</h2>
+      <p>Primary image dipakai di listing dan product card.</p>
+    </div>
+    <form method="POST" action="/admin/products/<%= product.id %>/images" enctype="multipart/form-data" class="upload-image-form">
+      <label class="upload-drop">
+        <span>Upload Image</span>
+        <input type="file" name="image" accept="image/jpeg,image/png,image/webp" required />
+        <small>JPG, PNG, atau WEBP. Maksimal 2MB.</small>
+      </label>
+      <label class="upload-primary-check">
+        <input type="checkbox" name="is_primary" />
+        <span>Set as primary image</span>
+      </label>
+      <button type="submit" class="crud-btn primary">Upload Image</button>
+    </form>
+
+    <% if (!images || images.length === 0) { %>
+      <p class="muted">Belum ada gambar produk.</p>
+    <% } else { %>
+      <div class="image-list">
+        <% images.forEach((image) => { %>
+          <div class="image-card">
+            <img src="<%= image.image_url %>" alt="<%= product.name %>" />
+            <code><%= image.image_url %></code>
+            <% if (Number(image.is_primary) === 1) { %><span class="mini-badge">Primary</span><% } %>
+            <div class="table-actions">
+              <% if (Number(image.is_primary) !== 1) { %>
+                <form method="POST" action="/admin/products/images/<%= image.id %>/set-primary">
+                  <button type="submit" class="crud-btn tiny">Set Primary</button>
+                </form>
+              <% } %>
+              <form method="POST" action="/admin/products/images/<%= image.id %>/delete">
+                <button type="submit" class="crud-btn tiny ghost">Delete</button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </article>
+
+  <article class="sub-panel">
+    <div class="sub-panel-head">
+      <h2>Add Variant</h2>
+      <p>Variant aktif akan tampil di product detail.</p>
+    </div>
+    <form method="POST" action="/admin/products/<%= product.id %>/variants" class="compact-variant-form">
+      <input name="size" placeholder="Size" required />
+      <input name="color" placeholder="Color" required />
+      <input name="color_code" placeholder="#F4E1E1" />
+      <input name="stock" type="number" min="0" placeholder="Stock" required />
+      <input name="price_override" type="number" min="0" step="1000" placeholder="Price override" />
+      <input name="variant_sku" placeholder="SKU" required />
+      <select name="status">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <button type="submit" class="crud-btn primary">Add Variant</button>
+    </form>
+  </article>
+</section>
+
+<section class="crud-panel">
+  <div class="sub-panel-head">
+    <h2>Variants</h2>
+    <p>Kelola stock, warna, SKU, dan status variant.</p>
+  </div>
+  <% if (!variants || variants.length === 0) { %>
+    <p class="muted">Belum ada variant.</p>
+  <% } else { %>
+    <div class="variant-list">
+      <% variants.forEach((variant) => { %>
+        <form method="POST" action="/admin/products/variants/<%= variant.id %>/update" class="variant-edit-row">
+          <input name="size" value="<%= variant.size %>" required />
+          <input name="color" value="<%= variant.color %>" required />
+          <input name="color_code" value="<%= variant.color_code || '' %>" placeholder="#F4E1E1" />
+          <input name="stock" type="number" min="0" value="<%= variant.stock %>" required />
+          <input name="price_override" type="number" min="0" step="1000" value="<%= variant.price_override || '' %>" placeholder="<%= formatRupiah(product.price) %>" />
+          <input name="variant_sku" value="<%= variant.variant_sku %>" required />
+          <select name="status">
+            <option value="active" <%= variant.status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= variant.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+          </select>
+          <button type="submit" class="crud-btn tiny">Update</button>
+          <button type="submit" formaction="/admin/products/variants/<%= variant.id %>/delete" class="crud-btn tiny ghost">Delete</button>
+        </form>
+      <% }); %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/shell-end') %>

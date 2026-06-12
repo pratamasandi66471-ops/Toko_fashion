@@ -1,0 +1,163 @@
+<%
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const stockState = (value) => {
+  const stock = Number(value || 0);
+  if (stock <= 0) return { label: 'Out of Stock', className: 'out' };
+  if (stock <= lowStockThreshold) return { label: 'Low Stock', className: 'low' };
+  return { label: 'Available', className: 'available' };
+};
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.category) qsBase.set('category', filters.category);
+if (filters.stock) qsBase.set('stock', filters.stock);
+if (filters.status) qsBase.set('status', filters.status);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Inventory',
+  description: 'Manage product variant stock and availability.'
+}) %>
+
+<section class="inventory-page">
+  <div class="inventory-summary-grid">
+    <article class="inventory-summary-card">
+      <span><i class="ri-stack-line"></i></span>
+      <div>
+        <p>Total Variants</p>
+        <strong><%= summary.totalVariants %></strong>
+      </div>
+    </article>
+    <article class="inventory-summary-card">
+      <span><i class="ri-archive-line"></i></span>
+      <div>
+        <p>Total Stock</p>
+        <strong><%= summary.totalStock %></strong>
+      </div>
+    </article>
+    <article class="inventory-summary-card is-low">
+      <span><i class="ri-error-warning-line"></i></span>
+      <div>
+        <p>Low Stock</p>
+        <strong><%= summary.lowStockVariants %></strong>
+      </div>
+    </article>
+    <article class="inventory-summary-card is-out">
+      <span><i class="ri-close-circle-line"></i></span>
+      <div>
+        <p>Out of Stock</p>
+        <strong><%= summary.outOfStockVariants %></strong>
+      </div>
+    </article>
+  </div>
+
+  <section class="crud-panel inventory-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/inventory" class="crud-filter-form inventory-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Product name, SKU, variant SKU" />
+        </label>
+        <label>
+          <span>Category</span>
+          <select name="category">
+            <option value="">All Categories</option>
+            <% categories.forEach((category) => { %>
+              <option value="<%= category.slug %>" <%= filters.category === category.slug || Number(filters.category) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option>
+            <% }); %>
+          </select>
+        </label>
+        <label>
+          <span>Stock</span>
+          <select name="stock">
+            <option value="">All Stock</option>
+            <option value="available" <%= filters.stock === 'available' ? 'selected' : '' %>>Available</option>
+            <option value="low" <%= filters.stock === 'low' ? 'selected' : '' %>>Low Stock</option>
+            <option value="out" <%= filters.stock === 'out' ? 'selected' : '' %>>Out of Stock</option>
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/inventory" class="crud-btn ghost">Reset</a>
+      </form>
+    </div>
+
+    <% if (!inventory || inventory.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-archive-drawer-line"></i>
+        <h2>Inventory belum tersedia</h2>
+        <p>Tidak ada variant yang cocok dengan filter saat ini.</p>
+        <a href="/admin/products" class="crud-btn primary">Manage Products</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table inventory-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Variant SKU</th>
+              <th>Size</th>
+              <th>Color</th>
+              <th>Stock</th>
+              <th>Stock Badge</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% inventory.forEach((item) => { const stock = stockState(item.stock); %>
+              <tr>
+                <td data-label="Product">
+                  <div class="inventory-product-cell">
+                    <img src="<%= item.image_url || '/images/placeholder-product.jpg' %>" alt="<%= item.product_name %>" />
+                    <div>
+                      <strong><%= item.product_name %></strong>
+                      <small><%= item.product_sku %> - <%= item.category_name || 'Uncategorized' %></small>
+                      <a href="/shop/<%= item.product_slug %>" target="_blank">View storefront</a>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Variant SKU"><%= item.variant_sku || '-' %></td>
+                <td data-label="Size"><%= item.size || '-' %></td>
+                <td data-label="Color">
+                  <span class="color-chip">
+                    <i style="--chip-color: <%= item.color_code || '#F4E1E1' %>"></i>
+                    <%= item.color || '-' %>
+                  </span>
+                </td>
+                <td data-label="Stock"><strong class="stock-number stock-<%= stock.className %>"><%= item.stock %></strong></td>
+                <td data-label="Stock Badge"><span class="inventory-badge stock-badge-<%= stock.className %>"><%= stock.label %></span></td>
+                <td data-label="Status"><span class="inventory-badge status-<%= item.variant_status %>"><%= titleCase(item.variant_status) %></span></td>
+                <td data-label="Actions">
+                  <div class="inventory-actions">
+                    <form method="POST" action="/admin/inventory/<%= item.id %>/update-stock" class="stock-update-form">
+                      <input type="number" name="stock" value="<%= item.stock %>" min="0" step="1" aria-label="Update stock for <%= item.variant_sku || item.product_name %>" required />
+                      <button type="submit" class="crud-btn tiny primary">Save</button>
+                    </form>
+                    <form method="POST" action="/admin/inventory/<%= item.id %>/toggle-status">
+                      <button type="submit" class="crud-btn tiny ghost"><%= item.variant_status === 'active' ? 'Deactivate' : 'Activate' %></button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/inventory?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

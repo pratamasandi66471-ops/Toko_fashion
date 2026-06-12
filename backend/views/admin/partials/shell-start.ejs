@@ -1,0 +1,89 @@
+<%
+const sidebarMenus = [
+  { key: 'dashboard', href: '/admin/dashboard', icon: 'ri-home-5-line', label: 'Overview' },
+  { key: 'orders', href: '/admin/orders', icon: 'ri-shopping-cart-2-line', label: 'Orders' },
+  { key: 'products', href: '/admin/products', icon: 'ri-price-tag-3-line', label: 'Products' },
+  { key: 'categories', href: '/admin/categories', icon: 'ri-layout-grid-line', label: 'Categories' },
+  { key: 'inventory', href: '/admin/inventory', icon: 'ri-archive-drawer-line', label: 'Inventory / Stock' },
+  { key: 'customers', href: '/admin/customers', icon: 'ri-group-line', label: 'Customers' },
+  { key: 'staff', href: '/admin/staff', icon: 'ri-team-line', label: 'Staff Management' },
+  { key: 'payments', href: '/admin/payments', icon: 'ri-bank-card-line', label: 'Payments' },
+  { key: 'shipping', href: '/admin/shipping', icon: 'ri-truck-line', label: 'Shipping' },
+  { key: 'returns', href: '/admin/returns', icon: 'ri-arrow-go-back-line', label: 'Returns / Refunds' },
+  { key: 'reviews', href: '/admin/reviews', icon: 'ri-star-line', label: 'Reviews' },
+  { key: 'promotions', href: '/admin/promotions', icon: 'ri-megaphone-line', label: 'Promotions' },
+  { key: 'coupons', href: '/admin/coupons', icon: 'ri-coupon-2-line', label: 'Coupons' },
+  { key: 'content', href: '/admin/content', icon: 'ri-image-line', label: 'Banners / Content' },
+  { key: 'reports', href: '/admin/reports', icon: 'ri-bar-chart-box-line', label: 'Reports / Analytics' },
+  { key: 'audit-logs', href: '/admin/audit-logs', icon: 'ri-shield-check-line', label: 'Audit Logs' },
+  { key: 'notifications', href: '/admin/notifications', icon: 'ri-notification-3-line', label: 'Notifications' },
+  { key: 'settings', href: '/admin/settings', icon: 'ri-settings-3-line', label: 'Website Settings' },
+  { key: 'profile', href: '/admin/profile', icon: 'ri-user-settings-line', label: 'Account / Profile' }
+];
+
+const sidebarGroups = [
+  { title: 'Overview', keys: ['dashboard'] },
+  { title: 'Sales', keys: ['orders', 'payments', 'returns'] },
+  { title: 'Catalog', keys: ['products', 'categories', 'inventory', 'reviews'] },
+  { title: 'Customers', keys: ['customers', 'staff'] },
+  { title: 'Marketing', keys: ['promotions', 'coupons', 'content'] },
+  { title: 'Logistics', keys: ['shipping'] },
+  { title: 'System', keys: ['reports', 'audit-logs', 'notifications', 'settings', 'profile'] }
+].map((group) => ({
+  ...group,
+  menus: group.keys.map((key) => sidebarMenus.find((menu) => menu.key === key)).filter(Boolean)
+}));
+%>
+
+<section class="admin-dashboard admin-crud-page">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-brand">
+      <span class="admin-logo"><i class="ri-hanger-line"></i></span>
+      <div>
+        <h2>S Fashion</h2>
+        <p>ADMIN</p>
+      </div>
+      <button type="button" class="admin-sidebar-collapse" data-admin-sidebar-collapse aria-label="Collapse sidebar" aria-expanded="true">
+        <i class="ri-side-bar-line"></i>
+      </button>
+    </div>
+
+    <nav class="admin-menu">
+      <% sidebarGroups.forEach((group) => { %>
+        <div class="admin-menu-group">
+          <p><%= group.title %></p>
+          <% group.menus.forEach((menu) => { %>
+            <a href="<%= menu.href %>" class="<%= activeMenu === menu.key ? 'is-active' : '' %>" title="<%= menu.label %>">
+              <i class="<%= menu.icon %>"></i>
+              <span><%= menu.label %></span>
+            </a>
+          <% }); %>
+        </div>
+      <% }); %>
+    </nav>
+
+    <form method="POST" action="/logout" class="admin-logout-form">
+      <button type="submit"><i class="ri-logout-box-r-line"></i><span>Logout</span></button>
+    </form>
+  </aside>
+
+  <div class="admin-content">
+    <header class="admin-topbar">
+      <button type="button" class="admin-sidebar-toggle" data-admin-sidebar-toggle aria-label="Open admin menu">
+        <i class="ri-menu-2-line"></i>
+      </button>
+      <div>
+        <h1><%= heading %></h1>
+        <p><%= description %></p>
+      </div>
+      <div class="admin-topbar-right">
+        <span class="admin-date"><i class="ri-calendar-line"></i><%= currentDateWib %></span>
+        <div class="admin-user">
+          <span><%= user && user.name ? user.name.charAt(0).toUpperCase() : 'A' %></span>
+          <div>
+            <strong><%= user ? user.name : 'Admin' %></strong>
+            <small>Admin</small>
+          </div>
+        </div>
+      </div>
+    </header>

@@ -1,0 +1,116 @@
+@import url('/css/admin/pages/categories.css');
+
+:root {
+  --audit-soft-pink: #f4e1e1;
+  --audit-accent-pink: #e991a8;
+  --audit-sky-blue: #63a3bc;
+  --audit-denim-blue: #5b7daf;
+  --audit-navy: #1c1531;
+  --audit-muted: #68728a;
+  --audit-border: #e8edf6;
+}
+
+.audit-page {
+  display: grid;
+  gap: 18px;
+}
+
+.audit-filter-form {
+  grid-template-columns: 1.3fr 1fr 1fr .8fr auto auto;
+  width: 100%;
+}
+
+.audit-table td {
+  vertical-align: top;
+}
+
+.audit-table small {
+  display: block;
+  margin-top: 4px;
+  color: var(--audit-muted);
+  font-weight: 800;
+}
+
+.audit-table code {
+  border-radius: 8px;
+  padding: 3px 7px;
+  background: #f7f8fc;
+  color: var(--audit-navy);
+}
+
+.audit-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.role-badge {
+  color: var(--audit-denim-blue);
+  background: #eef4ff;
+  text-transform: capitalize;
+}
+
+.action-badge {
+  color: #8a3c57;
+  background: #fff0f5;
+}
+
+.entity-badge {
+  color: #17627a;
+  background: #e8f6fb;
+}
+
+.audit-values summary {
+  cursor: pointer;
+  color: var(--audit-denim-blue);
+  font-weight: 900;
+}
+
+.audit-values div {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.audit-values pre {
+  max-width: 320px;
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  border: 1px solid var(--audit-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: #fbfcff;
+  color: var(--audit-navy);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.crud-btn:focus-visible,
+.crud-pagination a:focus-visible,
+.audit-values summary:focus-visible {
+  outline: 3px solid rgba(91, 125, 175, .35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1180px) {
+  .audit-filter-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .audit-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-values pre {
+    max-width: 100%;
+  }
+}

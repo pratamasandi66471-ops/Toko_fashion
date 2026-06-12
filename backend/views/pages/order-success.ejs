@@ -1,0 +1,57 @@
+<%
+const data = order || {};
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  maximumFractionDigits: 0
+}).format(Number(value || 0));
+%>
+
+<section class="order-success-page sf-container">
+  <div class="order-success-card sf-card">
+    <div class="success-icon"><i class="ri-checkbox-circle-line"></i></div>
+    <p class="sf-page-kicker">Order Created</p>
+    <h1>Pesanan Berhasil Dibuat</h1>
+    <p class="success-lead">Terima kasih sudah berbelanja di S Fashion. Kami sudah menerima pesananmu.</p>
+
+    <div class="success-code-grid">
+      <div>
+        <span>Invoice</span>
+        <strong><%= data.invoice_number %></strong>
+      </div>
+      <div>
+        <span>Order Code</span>
+        <strong><%= data.order_code %></strong>
+      </div>
+    </div>
+
+    <dl class="success-summary-list">
+      <div><dt>Subtotal</dt><dd><%= formatRupiah(data.subtotal) %></dd></div>
+      <div><dt>Ongkir</dt><dd><%= formatRupiah(data.shipping_cost) %></dd></div>
+      <% if (Number(data.discount_amount || 0) > 0) { %>
+        <div><dt>Discount</dt><dd>-<%= formatRupiah(data.discount_amount) %></dd></div>
+      <% } %>
+      <div class="success-total"><dt>Total</dt><dd><%= formatRupiah(data.total_amount) %></dd></div>
+    </dl>
+
+    <div class="success-status-row">
+      <span class="sf-badge sf-badge-warning">Payment: <%= data.payment_status %></span>
+      <span class="sf-badge sf-badge-success">Order: <%= data.status || data.order_status || 'pending' %></span>
+    </div>
+
+    <div class="success-next-steps">
+      <% if (data.payment_method === 'bank_transfer') { %>
+        <p>Silakan transfer ke rekening resmi S Fashion dan tunggu verifikasi pembayaran dari admin.</p>
+      <% } else if (data.payment_method === 'cod') { %>
+        <p>Pembayaran dilakukan saat pesanan diterima.</p>
+      <% } else { %>
+        <p>Kami akan memproses pesananmu sesuai metode pembayaran yang dipilih.</p>
+      <% } %>
+    </div>
+
+    <div class="success-actions">
+      <a href="/profile" class="sf-btn sf-btn-primary">My Orders</a>
+      <a href="/shop" class="sf-btn sf-btn-secondary">Continue Shopping</a>
+    </div>
+  </div>
+</section>

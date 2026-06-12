@@ -1,0 +1,299 @@
+<%
+const data = dashboardData || {};
+const kpis = data.kpis || {};
+const strip = data.strip || {};
+const tables = data.tables || {};
+
+const kpiCards = [
+  { key: 'totalRevenue', label: 'Total Revenue', icon: 'ri-money-dollar-circle-line', tone: 'purple', value: kpis.totalRevenue || 0, delta: kpis.deltas?.revenueTodayVsYesterdayPct || 0, hint: 'vs yesterday' },
+  { key: 'totalOrders', label: 'Total Orders', icon: 'ri-shopping-bag-2-line', tone: 'blue', value: kpis.totalOrders || 0, delta: kpis.deltas?.ordersTodayVsYesterdayPct || 0, hint: 'vs yesterday' },
+  { key: 'pendingOrders', label: 'Pending Orders', icon: 'ri-time-line', tone: 'orange', value: kpis.pendingOrders || 0, delta: -5.2, hint: 'vs yesterday' },
+  { key: 'completedOrders', label: 'Completed Orders', icon: 'ri-checkbox-circle-line', tone: 'green', value: kpis.completedOrders || 0, delta: 23.3, hint: 'vs yesterday' },
+  { key: 'totalProducts', label: 'Total Products', icon: 'ri-price-tag-3-line', tone: 'violet', value: kpis.totalProducts || 0, delta: 8.4, hint: 'vs yesterday' },
+  { key: 'lowStockProducts', label: 'Low Stock Products', icon: 'ri-error-warning-line', tone: 'red', value: kpis.lowStockProducts || 0, delta: -3, hint: 'vs yesterday' },
+  { key: 'totalCustomers', label: 'Total Customers', icon: 'ri-user-3-line', tone: 'teal', value: kpis.totalCustomers || 0, delta: 15.6, hint: 'vs yesterday' },
+  { key: 'newCustomersToday', label: 'New Customers Today', icon: 'ri-user-add-line', tone: 'yellow', value: kpis.newCustomersToday || 0, delta: kpis.deltas?.customersTodayVsYesterdayPct || 0, hint: 'vs yesterday' },
+  { key: 'totalStaff', label: 'Total Staff', icon: 'ri-team-line', tone: 'blue', value: kpis.totalStaff || 0, delta: 0, hint: 'No change' },
+  { key: 'salesThisMonth', label: 'Total Sales This Month', icon: 'ri-line-chart-line', tone: 'violet', value: kpis.salesThisMonth || 0, delta: 14.8, hint: 'vs last month' }
+];
+
+function formatRupiah(v) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(v || 0));
+}
+
+function formatCompact(v) {
+  return new Intl.NumberFormat('id-ID').format(Number(v || 0));
+}
+
+function percentLabel(v) {
+  const n = Number(v || 0);
+  if (n === 0) return 'No change';
+  return `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
+}
+
+function stars(rating) {
+  const r = Number(rating || 0);
+  let out = '';
+  for (let i = 1; i <= 5; i += 1) {
+    out += i <= Math.round(r) ? '?' : '?';
+  }
+  return out;
+}
+
+const sidebarMenus = [
+  { key: 'dashboard', href: '/admin/dashboard', icon: 'ri-home-5-line', label: 'Overview' },
+  { key: 'orders', href: '/admin/orders', icon: 'ri-shopping-cart-2-line', label: 'Orders' },
+  { key: 'products', href: '/admin/products', icon: 'ri-price-tag-3-line', label: 'Products' },
+  { key: 'categories', href: '/admin/categories', icon: 'ri-layout-grid-line', label: 'Categories' },
+  { key: 'inventory', href: '/admin/inventory', icon: 'ri-archive-drawer-line', label: 'Inventory / Stock' },
+  { key: 'customers', href: '/admin/customers', icon: 'ri-group-line', label: 'Customers' },
+  { key: 'staff', href: '/admin/staff', icon: 'ri-team-line', label: 'Staff Management' },
+  { key: 'payments', href: '/admin/payments', icon: 'ri-bank-card-line', label: 'Payments' },
+  { key: 'shipping', href: '/admin/shipping', icon: 'ri-truck-line', label: 'Shipping' },
+  { key: 'returns', href: '/admin/returns', icon: 'ri-arrow-go-back-line', label: 'Returns / Refunds' },
+  { key: 'reviews', href: '/admin/reviews', icon: 'ri-star-line', label: 'Reviews' },
+  { key: 'promotions', href: '/admin/promotions', icon: 'ri-megaphone-line', label: 'Promotions' },
+  { key: 'coupons', href: '/admin/coupons', icon: 'ri-coupon-2-line', label: 'Coupons' },
+  { key: 'content', href: '/admin/content', icon: 'ri-image-line', label: 'Banners / Content' },
+  { key: 'reports', href: '/admin/reports', icon: 'ri-bar-chart-box-line', label: 'Reports / Analytics' },
+  { key: 'audit-logs', href: '/admin/audit-logs', icon: 'ri-shield-check-line', label: 'Audit Logs' },
+  { key: 'notifications', href: '/admin/notifications', icon: 'ri-notification-3-line', label: 'Notifications' },
+  { key: 'settings', href: '/admin/settings', icon: 'ri-settings-3-line', label: 'Website Settings' },
+  { key: 'profile', href: '/admin/profile', icon: 'ri-user-settings-line', label: 'Account / Profile' }
+];
+
+const sidebarGroups = [
+  { title: 'Overview', keys: ['dashboard'] },
+  { title: 'Sales', keys: ['orders', 'payments', 'returns'] },
+  { title: 'Catalog', keys: ['products', 'categories', 'inventory', 'reviews'] },
+  { title: 'Customers', keys: ['customers', 'staff'] },
+  { title: 'Marketing', keys: ['promotions', 'coupons', 'content'] },
+  { title: 'Logistics', keys: ['shipping'] },
+  { title: 'System', keys: ['reports', 'audit-logs', 'notifications', 'settings', 'profile'] }
+].map((group) => ({
+  ...group,
+  menus: group.keys.map((key) => sidebarMenus.find((menu) => menu.key === key)).filter(Boolean)
+}));
+%>
+
+<section class="admin-dashboard" data-initial-range="<%= data.range || 'month' %>">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-brand">
+            <span class="admin-logo"><i class="ri-hanger-line"></i></span>
+            <div>
+                <h2>S Fashion</h2>
+                <p>ADMIN STORE</p>
+            </div>
+            <button type="button" class="admin-sidebar-collapse" data-admin-sidebar-collapse aria-label="Collapse sidebar" aria-expanded="true">
+                <i class="ri-side-bar-line"></i>
+            </button>
+        </div>
+
+        <nav class="admin-menu">
+            <% sidebarGroups.forEach((group) => { %>
+                <div class="admin-menu-group">
+                    <p><%= group.title %></p>
+                    <% group.menus.forEach((menu) => { %>
+                        <a href="<%= menu.href %>" class="<%= activeMenu === menu.key ? 'is-active' : '' %>" title="<%= menu.label %>">
+                            <i class="<%= menu.icon %>"></i>
+                            <span><%= menu.label %></span>
+                        </a>
+                    <% }); %>
+                </div>
+            <% }); %>
+        </nav>
+
+        <form method="POST" action="/logout" class="admin-logout-form">
+            <button type="submit"><i class="ri-logout-box-r-line"></i><span>Logout</span></button>
+        </form>
+    </aside>
+
+    <div class="admin-content">
+        <header class="admin-topbar">
+            <button type="button" class="admin-sidebar-toggle" data-admin-sidebar-toggle aria-label="Open admin menu">
+                <i class="ri-menu-2-line"></i>
+            </button>
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Welcome back, <%= user ? user.name : 'Admin' %>! Here's what's happening in your store today.</p>
+            </div>
+            <div class="admin-topbar-right">
+                <label class="admin-search">
+                    <i class="ri-search-line"></i>
+                    <input type="text" placeholder="Search anything..." />
+                </label>
+                <button type="button" class="top-icon"><i class="ri-notification-3-line"></i></button>
+                <span class="admin-date"><i class="ri-calendar-line"></i><%= currentDateWib %></span>
+                <div class="admin-user">
+                    <span><%= user && user.name ? user.name.charAt(0).toUpperCase() : 'A' %></span>
+                    <div>
+                        <strong><%= user ? user.name : 'Admin' %></strong>
+                        <small>Super Admin</small>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="admin-kpi-grid" id="adminKpiGrid">
+            <% kpiCards.forEach((card) => { %>
+                <article class="admin-kpi-card tone-<%= card.tone %>" data-kpi-key="<%= card.key %>">
+                    <div class="kpi-icon"><i class="<%= card.icon %>"></i></div>
+                    <div>
+                        <h3><%= card.label %></h3>
+                        <p class="kpi-value"><%= card.key.toLowerCase().includes('revenue') || card.key.toLowerCase().includes('sales') ? formatRupiah(card.value) : formatCompact(card.value) %></p>
+                        <p class="kpi-delta <%= card.delta > 0 ? 'is-up' : card.delta < 0 ? 'is-down' : '' %>"><%= percentLabel(card.delta) %> <span><%= card.hint %></span></p>
+                    </div>
+                </article>
+            <% }); %>
+        </section>
+
+        <section class="admin-strip" id="adminMetricStrip">
+            <article><span>Revenue Today</span><strong><%= formatRupiah(strip.revenueToday) %></strong></article>
+            <article><span>Orders Today</span><strong><%= formatCompact(strip.ordersToday) %></strong></article>
+            <article><span>Pending Orders</span><strong><%= formatCompact(strip.pendingOrders) %></strong></article>
+            <article><span>Low Stock</span><strong><%= formatCompact(strip.lowStockProducts) %> Products</strong></article>
+            <article><span>New Customers (7d)</span><strong><%= formatCompact(strip.newCustomers7Days) %></strong></article>
+            <article><span>Completed Orders</span><strong><%= formatCompact(strip.completedOrders) %></strong></article>
+        </section>
+
+        <section class="admin-charts-row">
+            <article class="admin-chart-card admin-chart-large">
+                <div class="admin-card-head">
+                    <h3>Sales Chart</h3>
+                    <div class="range-switch" id="salesRangeSwitch">
+                        <button type="button" data-range="day">Harian</button>
+                        <button type="button" data-range="week">Mingguan</button>
+                        <button type="button" data-range="month" class="is-active">Bulanan</button>
+                    </div>
+                </div>
+                <canvas id="salesChart" height="120"></canvas>
+            </article>
+
+            <article class="admin-chart-card admin-chart-small">
+                <div class="admin-card-head"><h3>Order Status</h3></div>
+                <canvas id="orderStatusChart" height="200"></canvas>
+            </article>
+
+            <article class="admin-chart-card admin-chart-small">
+                <div class="admin-card-head"><h3>Customer Growth</h3></div>
+                <canvas id="customerGrowthChart" height="200"></canvas>
+            </article>
+
+            <article class="admin-chart-card admin-chart-small">
+                <div class="admin-card-head"><h3>Revenue by Category</h3></div>
+                <canvas id="categoryRevenueChart" height="200"></canvas>
+            </article>
+        </section>
+
+        <section class="admin-panels-grid">
+            <article class="admin-panel">
+                <div class="admin-card-head"><h3>Top Selling Products</h3></div>
+                <div class="admin-panel-list" id="topSellingProductsList">
+                    <% (tables.topSellingProducts || []).forEach((item) => { %>
+                        <div class="panel-row">
+                            <span class="panel-main"><strong><%= item.name %></strong><small><%= item.sku %></small></span>
+                            <span class="panel-sub"><%= formatCompact(item.sold_qty) %> sold</span>
+                            <strong><%= formatRupiah(item.price) %></strong>
+                        </div>
+                    <% }); %>
+                </div>
+            </article>
+
+            <article class="admin-panel">
+                <div class="admin-card-head"><h3>Best Selling Products</h3></div>
+                <div class="admin-panel-list" id="bestSellingProductsList">
+                    <% if ((tables.bestSellingProducts || []).length > 0) { %>
+                        <% (tables.bestSellingProducts || []).forEach((item) => { %>
+                            <div class="panel-row">
+                                <span class="panel-main"><strong><%= item.name %></strong><small><%= Number(item.avg_rating || 0).toFixed(1) %> / 5 (<%= item.rating_count %>)</small></span>
+                                <span class="panel-sub"><%= stars(item.avg_rating) %></span>
+                                <strong><%= formatRupiah(item.total_revenue) %></strong>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="panel-empty">
+                            <strong>Belum ada produk terjual</strong>
+                            <p>Data best seller akan muncul setelah ada transaksi.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </article>
+
+            <article class="admin-panel panel-wide">
+                <div class="admin-card-head"><h3>Recent Orders</h3></div>
+                <div class="admin-panel-list" id="recentOrdersList">
+                    <% if ((tables.recentOrders || []).length > 0) { %>
+                        <% (tables.recentOrders || []).forEach((item) => { %>
+                            <div class="panel-row">
+                                <span class="panel-main"><strong>#<%= item.order_code %></strong><small><%= item.customer_name %></small></span>
+                                <span class="badge badge-<%= item.status %>"><%= item.status %></span>
+                                <strong><%= formatRupiah(item.total_amount) %></strong>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="panel-empty">
+                            <strong>Belum ada order</strong>
+                            <p>Order customer akan muncul setelah checkout pertama.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </article>
+
+            <article class="admin-panel">
+                <div class="admin-card-head"><h3>Low Stock Products</h3></div>
+                <div class="admin-panel-list" id="lowStockProductsList">
+                    <% if ((tables.lowStockProducts || []).length > 0) { %>
+                        <% (tables.lowStockProducts || []).forEach((item) => { %>
+                            <div class="panel-row">
+                                <span class="panel-main"><strong><%= item.name %></strong><small><%= item.sku %></small></span>
+                                <strong class="txt-danger"><%= item.stock %> left</strong>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="panel-empty">
+                            <strong>Belum ada produk stok rendah</strong>
+                            <p>Produk yang stoknya rendah akan muncul di sini.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </article>
+
+            <article class="admin-panel">
+                <div class="admin-card-head"><h3>Recent Customers</h3></div>
+                <div class="admin-panel-list" id="recentCustomersList">
+                    <% if ((tables.recentCustomers || []).length > 0) { %>
+                        <% (tables.recentCustomers || []).forEach((item) => { %>
+                            <div class="panel-row">
+                                <span class="panel-main"><strong><%= item.name %></strong><small><%= item.email %></small></span>
+                                <strong><%= new Date(item.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' }) %></strong>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="panel-empty">
+                            <strong>Belum ada customer</strong>
+                            <p>Customer yang register akan muncul di sini.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </article>
+
+            <article class="admin-panel">
+                <div class="admin-card-head"><h3>Recent Reviews</h3></div>
+                <div class="admin-panel-list" id="recentReviewsList">
+                    <% (tables.recentReviews || []).forEach((item) => { %>
+                        <div class="panel-row">
+                            <span class="panel-main"><strong><%= item.customer_name %></strong><small><%= item.product_name %></small></span>
+                            <span class="panel-sub"><%= stars(item.rating) %></span>
+                        </div>
+                    <% }); %>
+                </div>
+            </article>
+        </section>
+    </div>
+</section>
+
+<script>
+  window.__ADMIN_DASHBOARD_INITIAL__ = <%- JSON.stringify(data || {}) %>;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/js/admin-dashboard.js"></script>

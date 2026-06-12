@@ -1,0 +1,210 @@
+<%
+const cartData = cart || { items: [], subtotal: 0, itemCount: 0, isEmpty: true };
+const addressList = addresses || [];
+const shippingList = shippingOptions || [];
+const paymentList = paymentOptions || [];
+const errors = formErrors || {};
+const oldData = old || {};
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  maximumFractionDigits: 0
+}).format(Number(value || 0));
+%>
+
+<section class="checkout-page sf-container">
+  <header class="sf-page-header checkout-header">
+    <div>
+      <p class="sf-page-kicker">Secure Checkout</p>
+      <h1>Checkout</h1>
+      <p>Pastikan alamat, pengiriman, pembayaran, dan voucher sudah benar sebelum membuat pesanan.</p>
+    </div>
+  </header>
+
+  <div class="checkout-layout">
+    <div class="checkout-main">
+      <section class="checkout-section sf-card">
+        <div class="checkout-section-heading">
+          <span><i class="ri-map-pin-line"></i></span>
+          <div>
+            <h2>Alamat Tersimpan</h2>
+            <p>Pilih alamat pengiriman di form buat pesanan.</p>
+          </div>
+        </div>
+
+        <% if (addressList.length === 0) { %>
+          <div class="checkout-mini-empty">
+            <p>Belum ada alamat. Tambahkan alamat baru di bawah.</p>
+          </div>
+        <% } else { %>
+          <div class="saved-address-grid">
+            <% addressList.forEach((address) => { %>
+              <label class="saved-address-card <%= Number(selectedAddressId) === Number(address.id) ? 'is-selected' : '' %>">
+                <input type="radio" name="address_id_preview" <%= Number(selectedAddressId) === Number(address.id) ? 'checked' : '' %> disabled />
+                <strong><%= address.recipient_name %></strong>
+                <span><%= address.phone %></span>
+                <small><%= address.full_address %>, <%= address.city %>, <%= address.province %> <%= address.postal_code || '' %></small>
+              </label>
+            <% }); %>
+          </div>
+        <% } %>
+      </section>
+
+      <section class="checkout-section sf-card">
+        <div class="checkout-section-heading">
+          <span><i class="ri-home-heart-line"></i></span>
+          <div>
+            <h2>Tambah Alamat Baru</h2>
+            <p>Simpan alamat baru jika alamat tujuan belum tersedia.</p>
+          </div>
+        </div>
+
+        <form method="POST" action="/checkout/address" class="checkout-address-form">
+          <div class="checkout-form-grid">
+            <label>
+              <span>Nama penerima</span>
+              <input class="sf-input" type="text" name="recipient_name" placeholder="Nama penerima" value="<%= oldData.recipient_name || '' %>" required />
+              <% if (errors.recipient_name) { %><small class="auth-field-error"><%= errors.recipient_name %></small><% } %>
+            </label>
+            <label>
+              <span>Nomor telepon</span>
+              <input class="sf-input" type="text" name="phone" placeholder="Nomor telepon" value="<%= oldData.phone || '' %>" required />
+              <% if (errors.phone) { %><small class="auth-field-error"><%= errors.phone %></small><% } %>
+            </label>
+            <label>
+              <span>Provinsi</span>
+              <input class="sf-input" type="text" name="province" placeholder="Provinsi" value="<%= oldData.province || '' %>" required />
+              <% if (errors.province) { %><small class="auth-field-error"><%= errors.province %></small><% } %>
+            </label>
+            <label>
+              <span>Kota</span>
+              <input class="sf-input" type="text" name="city" placeholder="Kota" value="<%= oldData.city || '' %>" required />
+              <% if (errors.city) { %><small class="auth-field-error"><%= errors.city %></small><% } %>
+            </label>
+            <label>
+              <span>Kecamatan</span>
+              <input class="sf-input" type="text" name="district" placeholder="Kecamatan (opsional)" value="<%= oldData.district || '' %>" />
+            </label>
+            <label>
+              <span>Kode pos</span>
+              <input class="sf-input" type="text" name="postal_code" placeholder="Kode pos (opsional)" value="<%= oldData.postal_code || '' %>" />
+            </label>
+          </div>
+
+          <label>
+            <span>Alamat lengkap</span>
+            <textarea class="sf-textarea" name="full_address" placeholder="Alamat lengkap" required><%= oldData.full_address || '' %></textarea>
+            <% if (errors.full_address) { %><small class="auth-field-error"><%= errors.full_address %></small><% } %>
+          </label>
+
+          <label class="checkout-checkbox">
+            <input type="checkbox" name="is_default" value="1" <%= oldData.is_default ? 'checked' : '' %> />
+            <span>Jadikan alamat utama</span>
+          </label>
+
+          <button type="submit" class="sf-btn sf-btn-secondary">Simpan Alamat</button>
+        </form>
+      </section>
+
+      <section class="checkout-section sf-card">
+        <div class="checkout-section-heading">
+          <span><i class="ri-shopping-bag-3-line"></i></span>
+          <div>
+            <h2>Buat Pesanan</h2>
+            <p>Pilih alamat, pengiriman, pembayaran, lalu buat pesanan.</p>
+          </div>
+        </div>
+
+        <form method="POST" action="/checkout" class="checkout-order-form">
+          <label>
+            <span>Pilih alamat pengiriman</span>
+            <select id="address_id" class="sf-select" name="address_id" required>
+              <option value="">-- Pilih alamat --</option>
+              <% addressList.forEach((address) => { %>
+                <option value="<%= address.id %>" <%= Number(selectedAddressId) === Number(address.id) ? 'selected' : '' %>>
+                  <%= address.recipient_name %> - <%= address.city %>, <%= address.province %>
+                </option>
+              <% }); %>
+            </select>
+            <% if (errors.address_id) { %><small class="auth-field-error"><%= errors.address_id %></small><% } %>
+          </label>
+
+          <div class="checkout-choice-grid">
+            <label>
+              <span>Metode pengiriman</span>
+              <select id="shipping_method" class="sf-select" name="shipping_method" required>
+                <% shippingList.forEach((method) => { %>
+                  <option value="<%= method.key %>" <%= selectedShipping === method.key ? 'selected' : '' %>>
+                    <%= method.label %> - <%= formatRupiah(method.cost) %>
+                  </option>
+                <% }); %>
+              </select>
+              <% if (errors.shipping_method) { %><small class="auth-field-error"><%= errors.shipping_method %></small><% } %>
+            </label>
+
+            <label>
+              <span>Metode pembayaran</span>
+              <select id="payment_method" class="sf-select" name="payment_method" required>
+                <% paymentList.forEach((method) => { %>
+                  <option value="<%= method.key %>" <%= selectedPayment === method.key ? 'selected' : '' %>>
+                    <%= method.label %>
+                  </option>
+                <% }); %>
+              </select>
+              <% if (errors.payment_method) { %><small class="auth-field-error"><%= errors.payment_method %></small><% } %>
+            </label>
+          </div>
+
+          <label class="voucher-card">
+            <span>Voucher Code</span>
+            <input id="voucher_code" class="sf-input" type="text" name="voucher_code" placeholder="Enter coupon code" value="<%= oldData.voucher_code || '' %>" />
+            <small>Discount will be applied after placing order.</small>
+          </label>
+
+          <label>
+            <span>Catatan</span>
+            <textarea class="sf-textarea" name="notes" placeholder="Catatan (opsional)"><%= oldData.notes || '' %></textarea>
+          </label>
+
+          <button type="submit" class="sf-btn sf-btn-primary checkout-place-btn">Place Order</button>
+        </form>
+      </section>
+    </div>
+
+    <aside class="checkout-summary sf-card">
+      <div>
+        <p class="sf-page-kicker">Order Summary</p>
+        <h2>Ringkasan Pesanan</h2>
+      </div>
+
+      <div class="checkout-summary-items">
+        <% cartData.items.forEach((item) => { %>
+          <article>
+            <div>
+              <strong><%= item.productName %></strong>
+              <small><%= item.size %>/<%= item.color %> x <%= item.quantity %></small>
+            </div>
+            <span><%= formatRupiah(item.subtotal) %></span>
+          </article>
+        <% }); %>
+      </div>
+
+      <dl class="checkout-summary-list">
+        <div>
+          <dt>Subtotal</dt>
+          <dd><%= formatRupiah(cartData.subtotal) %></dd>
+        </div>
+        <div>
+          <dt>Ongkir</dt>
+          <dd><%= formatRupiah(shippingCost) %></dd>
+        </div>
+        <div class="checkout-total-row">
+          <dt>Total</dt>
+          <dd><%= formatRupiah(totalAmount) %></dd>
+        </div>
+      </dl>
+
+      <p class="checkout-summary-note">Voucher akan divalidasi saat pesanan dibuat. Total akhir dapat berkurang jika voucher valid.</p>
+    </aside>
+  </div>
+</section>

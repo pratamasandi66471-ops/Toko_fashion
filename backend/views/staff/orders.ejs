@@ -1,0 +1,77 @@
+<%
+const formatRupiah = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.status) qsBase.set('status', filters.status);
+%>
+
+<%- include('partials/shell-start', {
+  heading: 'Orders',
+  description: 'Process customer orders through the staff workflow.'
+}) %>
+
+<section class="staff-panel">
+  <form method="GET" action="/staff/orders" class="staff-filter-form">
+    <label>
+      <span>Search</span>
+      <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Invoice, order code, customer" />
+    </label>
+    <label>
+      <span>Status</span>
+      <select name="status">
+        <option value="">All Status</option>
+        <% orderStatuses.forEach((status) => { %>
+          <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+        <% }); %>
+      </select>
+    </label>
+    <button type="submit" class="staff-btn secondary"><i class="ri-search-line"></i>Filter</button>
+    <a href="/staff/orders" class="staff-btn ghost">Reset</a>
+  </form>
+
+  <% if (!orders || orders.length === 0) { %>
+    <article class="empty-state">
+      <h2>No orders found</h2>
+      <p class="muted">No operational orders match your filter.</p>
+    </article>
+  <% } else { %>
+    <div class="staff-table-wrap">
+      <table class="staff-table">
+        <thead>
+          <tr>
+            <th>Invoice / Code</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% orders.forEach((order) => { %>
+            <tr>
+              <td data-label="Invoice / Code"><strong><%= order.invoice_number || '-' %></strong><br><small><%= order.order_code || '-' %></small></td>
+              <td data-label="Customer"><strong><%= order.customer_name || 'Unknown Customer' %></strong><br><small><%= order.customer_email || '-' %></small></td>
+              <td data-label="Total"><%= formatRupiah(order.total_amount) %></td>
+              <td data-label="Payment"><span class="badge badge-<%= order.display_payment_status || 'unpaid' %>"><%= titleCase(order.display_payment_status || 'unpaid') %></span></td>
+              <td data-label="Status"><span class="badge badge-<%= order.status %>"><%= titleCase(order.status) %></span></td>
+              <td data-label="Date"><%= formatDate(order.ordered_at || order.created_at) %></td>
+              <td data-label="Action"><a href="/staff/orders/<%= order.id %>" class="staff-btn tiny primary">Detail</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="pagination">
+      <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+        <a href="/staff/orders?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+      <% } %>
+    </nav>
+  <% } %>
+</section>
+
+<%- include('partials/shell-end') %>

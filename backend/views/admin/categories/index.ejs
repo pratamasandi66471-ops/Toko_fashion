@@ -1,0 +1,74 @@
+<%- include('../partials/shell-start', {
+  heading: 'Category Management',
+  description: 'Kelola kategori storefront, status, dan metadata visual.'
+}) %>
+
+<section class="crud-panel">
+  <div class="crud-actions-row">
+    <form method="GET" action="/admin/categories" class="crud-filter-form">
+      <label>
+        <span>Search</span>
+        <input type="search" name="search" value="<%= filters.search || '' %>" placeholder="Nama atau slug kategori" />
+      </label>
+      <label>
+        <span>Status</span>
+        <select name="status">
+          <option value="">All Status</option>
+          <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
+          <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+        </select>
+      </label>
+      <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+      <a href="/admin/categories" class="crud-btn ghost">Reset</a>
+    </form>
+    <a href="/admin/categories/create" class="crud-btn primary"><i class="ri-add-line"></i>Create Category</a>
+  </div>
+
+  <% if (!categories || categories.length === 0) { %>
+    <article class="crud-empty">
+      <i class="ri-layout-grid-line"></i>
+      <h2>Belum ada kategori</h2>
+      <p>Tambahkan kategori pertama agar produk bisa tampil lebih rapi di storefront.</p>
+      <a href="/admin/categories/create" class="crud-btn primary">Create Category</a>
+    </article>
+  <% } else { %>
+    <div class="crud-table-wrap">
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Products</th>
+            <th>Status</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% categories.forEach((category) => { %>
+            <tr>
+              <td data-label="Name">
+                <strong><%= category.name %></strong>
+                <small><%= category.description || 'No description' %></small>
+              </td>
+              <td data-label="Slug"><code><%= category.slug %></code></td>
+              <td data-label="Products"><%= category.product_count || 0 %></td>
+              <td data-label="Status"><span class="status-badge status-<%= category.status %>"><%= category.status %></span></td>
+              <td data-label="Updated"><%= new Date(category.updated_at).toLocaleDateString('id-ID') %></td>
+              <td data-label="Actions">
+                <div class="table-actions">
+                  <a href="/admin/categories/<%= category.id %>/edit" class="crud-btn tiny">Edit</a>
+                  <form method="POST" action="/admin/categories/<%= category.id %>/toggle-status">
+                    <button type="submit" class="crud-btn tiny ghost"><%= category.status === 'active' ? 'Deactivate' : 'Activate' %></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/shell-end') %>

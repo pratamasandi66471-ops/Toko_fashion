@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= pageTitle ? `${pageTitle} | S Fashion` : 'S Fashion' %></title>
+
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/css/base/variables.css" />
+    <link rel="stylesheet" href="/css/base/reset.css" />
+    <link rel="stylesheet" href="/css/base/utilities.css" />
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/customer/navbar.css" />
+    <link rel="stylesheet" href="/css/customer/footer.css" />
+    <link rel="stylesheet" href="/css/customer/home.css" />
+    <link rel="stylesheet" href="/css/customer/shop.css" />
+    <link rel="stylesheet" href="/css/customer/product-detail.css" />
+    <link rel="stylesheet" href="/css/customer/cart.css" />
+    <link rel="stylesheet" href="/css/customer/checkout.css" />
+    <% if (typeof pageCss !== 'undefined' && pageCss) { %>
+        <link rel="stylesheet" href="<%= pageCss %>" />
+    <% } %>
+</head>
+
+<body>
+    <%- include('../layouts/partials/navbar') %>
+
+    <main>
+        <%- include('../layouts/partials/flash') %>
+        <%- body %>
+    </main>
+
+    <%- include('../layouts/partials/footer') %>
+</body>
+
+</html>
