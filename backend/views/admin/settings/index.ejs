@@ -1,0 +1,96 @@
+<%
+const valueOf = (key) => settings && Object.prototype.hasOwnProperty.call(settings, key) ? settings[key] : '';
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Website Settings',
+  description: 'Manage store identity and contact information.'
+}) %>
+
+<section class="admin-settings-page">
+  <div class="admin-settings-header">
+    <div>
+      <span class="admin-settings-eyebrow">Store Configuration</span>
+      <h2>Website Settings</h2>
+      <p>Update basic store identity and social links used by the S Fashion admin system.</p>
+    </div>
+  </div>
+
+  <form method="POST" action="/admin/settings" class="admin-settings-shell">
+    <section class="admin-settings-section">
+      <div class="admin-settings-section-head">
+        <span><i class="ri-store-2-line"></i></span>
+        <div>
+          <h3>Store Information</h3>
+          <p>Basic contact information for the store.</p>
+        </div>
+      </div>
+
+      <div class="admin-settings-grid">
+        <label class="admin-settings-field">
+          <span>Store Name</span>
+          <input type="text" name="store_name" value="<%= valueOf('store.name') %>" maxlength="100" required />
+        </label>
+
+        <label class="admin-settings-field">
+          <span>Store Email</span>
+          <input type="email" name="store_email" value="<%= valueOf('store.email') %>" placeholder="hello@sfashion.test" />
+        </label>
+
+        <label class="admin-settings-field">
+          <span>Store Phone</span>
+          <input type="tel" name="store_phone" value="<%= valueOf('store.phone') %>" maxlength="30" placeholder="+62..." />
+        </label>
+
+        <label class="admin-settings-field full">
+          <span>Store Address</span>
+          <textarea name="store_address" rows="4" maxlength="500" placeholder="Store address"><%= valueOf('store.address') %></textarea>
+        </label>
+      </div>
+    </section>
+
+    <section class="admin-settings-section">
+      <div class="admin-settings-section-head">
+        <span><i class="ri-links-line"></i></span>
+        <div>
+          <h3>Social Links</h3>
+          <p>Use full URLs that start with http:// or https://.</p>
+        </div>
+      </div>
+
+      <div class="admin-settings-grid">
+        <label class="admin-settings-field">
+          <span>Instagram URL</span>
+          <input type="url" name="instagram_url" value="<%= valueOf('social.instagram') %>" placeholder="https://instagram.com/sfashion" />
+        </label>
+
+        <label class="admin-settings-field">
+          <span>Facebook URL</span>
+          <input type="url" name="facebook_url" value="<%= valueOf('social.facebook') %>" placeholder="https://facebook.com/sfashion" />
+        </label>
+
+        <label class="admin-settings-field">
+          <span>TikTok URL</span>
+          <input type="url" name="tiktok_url" value="<%= valueOf('social.tiktok') %>" placeholder="https://tiktok.com/@sfashion" />
+        </label>
+      </div>
+    </section>
+
+    <article class="admin-settings-note">
+      <i class="ri-information-line"></i>
+      <div>
+        <strong>Integration note</strong>
+        <p>Settings are now stored in the database. Storefront footer, navbar, and email sender integration will be connected gradually in the next stage.</p>
+      </div>
+    </article>
+
+    <div class="admin-settings-actions">
+      <button type="submit" class="admin-settings-btn">
+        <i class="ri-save-3-line"></i>
+        Save Settings
+      </button>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/shell-end') %>
