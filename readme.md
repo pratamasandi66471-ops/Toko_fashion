@@ -23,7 +23,8 @@ Yang sudah kuat:
 - Struktur CSS sudah dipisah ke folder `base`, `customer`, `admin`, `staff`, dan `auth`; file CSS root lama hanya legacy compatibility copy.
 
 Yang masih belum selesai:
-- Admin placeholder nyata: shipping, returns, promotions, content, notifications, dan settings.
+- Admin placeholder nyata: shipping, returns, promotions, content, dan notifications.
+- Admin Settings sudah editable di DB dan mulai terintegrasi ke footer storefront serta email template.
 - Service layer sudah mulai diisi, tetapi belum dipakai luas di semua controller/model.
 - Checkout shipping masih memakai konstanta `SHIPPING_METHODS` di `backend/models/order.model.js`; belum DB-driven.
 - Fresh setup, seed, dan migration perlu terus dijaga agar cocok dengan schema aktif.
@@ -88,6 +89,7 @@ public/css/
       products.css
       reports.css
       reviews.css
+      settings.css
       staff-management.css
       vouchers.css
   staff/
@@ -280,6 +282,22 @@ Important CSS notes:
 - [x] Uses `backend/models/adminProfile.model.js`.
 - [x] Uses `backend/controllers/adminProfile.controller.js`.
 
+### Admin Settings
+
+- [x] `/admin/settings` real editable settings page.
+- [x] Store identity settings: store name, email, phone, and address.
+- [x] Social link settings: Instagram, Facebook, and TikTok.
+- [x] Settings are stored in the `settings` table.
+- [x] Migration `database/migrations/create_settings_table.sql`.
+- [x] Allowed setting keys are hardcoded; arbitrary keys from request body are ignored.
+- [x] Admin-only access through existing admin route guard.
+- [x] Public footer reads store identity and social links from DB settings.
+- [x] Public navbar branding reads store name from DB settings.
+- [x] Email templates read store identity/contact from DB settings with safe fallback.
+- [x] Uses `backend/models/adminSettings.model.js`.
+- [x] Uses `backend/controllers/adminSettings.controller.js`.
+- [!] Settings are not yet wired into logo upload or maintenance mode.
+
 ### Admin Review Management
 
 - [x] `/admin/reviews` list.
@@ -407,7 +425,6 @@ Important CSS notes:
 - [ ] `/admin/promotions`
 - [ ] `/admin/content`
 - [ ] `/admin/notifications`
-- [ ] `/admin/settings`
 
 ### Backend Files Still Empty / Not Fully Integrated
 
@@ -537,12 +554,13 @@ Important CSS notes:
 | GET | `/admin/profile` | Active |
 | POST | `/admin/profile` | Active |
 | POST | `/admin/profile/password` | Active |
+| GET | `/admin/settings` | Active |
+| POST | `/admin/settings` | Active |
 | GET | `/admin/shipping` | Placeholder |
 | GET | `/admin/returns` | Placeholder |
 | GET | `/admin/promotions` | Placeholder |
 | GET | `/admin/content` | Placeholder |
 | GET | `/admin/notifications` | Placeholder |
-| GET | `/admin/settings` | Placeholder |
 
 ### Staff Routes
 
@@ -573,6 +591,7 @@ Main tables used by runtime:
 - `payments`
 - `reviews`
 - `vouchers`
+- `settings`
 - `audit_logs` via migration
 
 Important notes:
@@ -585,6 +604,7 @@ Important notes:
 - `database/seed_products.sql` exists for product/category/image/variant seed data.
 - `database/migration_hardening_cart_checkout.sql` exists for legacy hardening.
 - `database/migrations/create_audit_logs.sql` must be run before using `/admin/audit-logs`.
+- `database/migrations/create_settings_table.sql` creates DB-backed admin settings.
 - Back up DB before running migrations.
 
 ## Important Views
@@ -615,6 +635,7 @@ Implemented views include:
   - `backend/views/admin/coupons/*`
   - `backend/views/admin/reports/index.ejs`
   - `backend/views/admin/audit-logs/index.ejs`
+  - `backend/views/admin/settings/index.ejs`
 - Staff:
   - `backend/views/staff/dashboard.ejs`
   - `backend/views/staff/orders.ejs`
@@ -634,8 +655,9 @@ Legacy/old admin views still present but not the main route target for implement
 ## Known Gaps & Technical Debt
 
 1. **Placeholder admin modules**
-   - Shipping, returns, promotions, content, notifications, and settings still render placeholder pages.
+   - Shipping, returns, promotions, content, and notifications still render placeholder pages.
    - Shipping needs a schema decision first because active checkout shipping is still hardcoded in `order.model.js`.
+   - Settings are DB-backed and used by navbar/footer/email templates; logo upload and maintenance mode are still later steps.
 
 2. **Service layer cleanup**
    - `audit.service.js` and `email.service.js` are implemented.
@@ -693,11 +715,11 @@ Legacy/old admin views still present but not the main route target for implement
 - [x] Reports.
 - [x] Audit logs.
 - [x] Admin profile page.
+- [x] Website settings.
 - [ ] Shipping management.
 - [ ] Returns/refund workflow.
 - [ ] Promotions/content management.
 - [ ] Notifications center.
-- [ ] Website settings.
 
 ### Phase 3 - Quality & Hardening
 
@@ -740,7 +762,6 @@ Route yang masih placeholder:
 - `/admin/promotions`
 - `/admin/content`
 - `/admin/notifications`
-- `/admin/settings`
 
 Rekomendasi urutan:
 - Shipping management, karena checkout saat ini masih memakai hardcoded `regular` dan `express`.
@@ -748,7 +769,7 @@ Rekomendasi urutan:
   - Jika belum boleh schema change, buat shipping sebagai dokumentasi/settings placeholder lebih dulu, bukan CRUD palsu.
 - Returns/refund workflow, karena berkaitan dengan order/payment/inventory.
 - Notifications center, karena email service dan audit trail sudah ada.
-- Settings sebagai production polish.
+- Integrasi settings lanjutan ke logo upload dan maintenance mode.
 
 ### Priority 3 - Test Coverage Expansion
 
@@ -931,5 +952,5 @@ After that:
 2. Move stock and payment helper logic into `stock.service.js` and `payment.service.js`.
 3. Build shipping management and connect checkout shipping to DB when ready.
 4. Build returns/refund workflow.
-5. Build notifications center and settings.
+5. Build notifications center and continue DB settings integration for logo upload and maintenance mode.
 6. Expand tests for staff workflow, uploads, voucher edge cases, and error middleware.

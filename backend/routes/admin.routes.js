@@ -13,6 +13,7 @@ const adminProfileController = require("../controllers/adminProfile.controller")
 const adminProductController = require("../controllers/adminProduct.controller");
 const adminReportController = require("../controllers/adminReport.controller");
 const adminReviewController = require("../controllers/adminReview.controller");
+const adminSettingsController = require("../controllers/adminSettings.controller");
 const adminStaffController = require("../controllers/adminStaff.controller");
 const adminVoucherController = require("../controllers/adminVoucher.controller");
 const { uploadProductImage } = require("../middleware/upload.middleware");
@@ -112,7 +113,9 @@ router.get(
   adminController.renderPlaceholder("notifications"),
   
 );
-router.get("/settings", adminController.renderPlaceholder("settings"));
+router.get("/settings", adminSettingsController.showSettings);
+router.post("/settings", adminSettingsController.updateSettings);
+
 router.get("/profile", adminProfileController.showProfile);
 router.post("/profile", adminProfileController.updateProfile);
 router.post("/profile/password", adminProfileController.updatePassword);

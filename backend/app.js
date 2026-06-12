@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const staffRoutes = require('./routes/staff.routes');
 const cartModel = require('./models/cart.model');
+const settingsModel = require('./models/settings.model');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
 
 const app = express();
@@ -52,7 +53,22 @@ app.use((req, res, next) => {
   res.locals.flashSuccess = req.flash('success');
   res.locals.flashError = req.flash('error');
   res.locals.cartCount = 0;
+  res.locals.siteSettings = { ...settingsModel.DEFAULT_PUBLIC_SETTINGS };
+  res.locals.storeSettings = settingsModel.toStoreSettings(res.locals.siteSettings);
   next();
+});
+
+app.use(async (req, res, next) => {
+  try {
+    res.locals.siteSettings = await settingsModel.getPublicSettingsMap();
+    res.locals.storeSettings = settingsModel.toStoreSettings(res.locals.siteSettings);
+    return next();
+  } catch (error) {
+    console.error('[settings] Failed to load public settings:', error);
+    res.locals.siteSettings = { ...settingsModel.DEFAULT_PUBLIC_SETTINGS };
+    res.locals.storeSettings = settingsModel.toStoreSettings(res.locals.siteSettings);
+    return next();
+  }
 });
 
 app.use(async (req, res, next) => {
