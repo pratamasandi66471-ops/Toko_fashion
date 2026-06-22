@@ -1,0 +1,19 @@
+<%- include('../partials/shell-start', {
+  heading: 'Edit Notification',
+  description: notification.title
+}) %>
+
+<section class="notifications-page">
+  <section class="crud-panel form-panel">
+    <form method="POST" action="/admin/notifications/<%= notification.id %>/update" class="crud-form">
+      <%- include('form', { old, formErrors, typeOptions, audienceOptions, statusOptions }) %>
+      <p class="notification-note">This module stores notifications in DB. Email/push delivery can be integrated later without changing this admin workflow.</p>
+      <div class="form-actions">
+        <a href="/admin/notifications" class="crud-btn ghost">Cancel</a>
+        <button type="submit" class="crud-btn primary"><i class="ri-save-3-line"></i>Save Changes</button>
+      </div>
+    </form>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

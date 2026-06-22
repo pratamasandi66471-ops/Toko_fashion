@@ -1,0 +1,19 @@
+<%- include('../partials/shell-start', {
+  heading: context.editHeading,
+  description: context.description
+}) %>
+
+<section class="marketing-content-page">
+  <section class="crud-panel form-panel">
+    <form method="POST" action="<%= context.basePath %>/<%= content.id %>/update" class="crud-form">
+      <%- include('form', { context, old, formErrors, typeOptions, statusOptions, placementOptions }) %>
+      <p class="marketing-note">Content is stored for admin management first. Storefront placement integration can be enabled per section later.</p>
+      <div class="form-actions">
+        <a href="<%= context.basePath %>" class="crud-btn ghost">Cancel</a>
+        <button type="submit" class="crud-btn primary"><i class="ri-save-3-line"></i>Save Changes</button>
+      </div>
+    </form>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

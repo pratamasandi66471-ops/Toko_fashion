@@ -1,0 +1,124 @@
+<%
+const formatDate = (value) => value ? new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '-';
+const titleCase = (value) => String(value || '-').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const qsBase = new URLSearchParams();
+if (filters.q) qsBase.set('q', filters.q);
+if (filters.type) qsBase.set('type', filters.type);
+if (filters.audience) qsBase.set('audience', filters.audience);
+if (filters.status) qsBase.set('status', filters.status);
+%>
+
+<%- include('../partials/shell-start', {
+  heading: 'Notifications',
+  description: 'Create and manage internal notification messages.'
+}) %>
+
+<section class="notifications-page">
+  <section class="crud-panel notifications-panel">
+    <div class="crud-actions-row">
+      <form method="GET" action="/admin/notifications" class="crud-filter-form notifications-filter-form">
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="<%= filters.q || '' %>" placeholder="Title, message, action" />
+        </label>
+        <label>
+          <span>Type</span>
+          <select name="type">
+            <option value="">All Types</option>
+            <% typeOptions.forEach((type) => { %>
+              <option value="<%= type %>" <%= filters.type === type ? 'selected' : '' %>><%= titleCase(type) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <label>
+          <span>Audience</span>
+          <select name="audience">
+            <option value="">All Audience</option>
+            <% audienceOptions.forEach((audience) => { %>
+              <option value="<%= audience %>" <%= filters.audience === audience ? 'selected' : '' %>><%= titleCase(audience) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            <option value="">All Status</option>
+            <% statusOptions.forEach((status) => { %>
+              <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= titleCase(status) %></option>
+            <% }); %>
+          </select>
+        </label>
+        <button type="submit" class="crud-btn secondary"><i class="ri-search-line"></i>Filter</button>
+        <a href="/admin/notifications" class="crud-btn ghost">Reset</a>
+      </form>
+      <a href="/admin/notifications/create" class="crud-btn primary"><i class="ri-notification-3-line"></i>Add Notification</a>
+    </div>
+
+    <% if (!notifications || notifications.length === 0) { %>
+      <article class="crud-empty">
+        <i class="ri-notification-3-line"></i>
+        <h2>Belum ada notifikasi</h2>
+        <p>Buat notifikasi internal pertama untuk admin, staff, customer, atau semua audience.</p>
+        <a href="/admin/notifications/create" class="crud-btn primary">Create Notification</a>
+      </article>
+    <% } else { %>
+      <div class="crud-table-wrap">
+        <table class="crud-table notifications-table">
+          <thead>
+            <tr>
+              <th>Notification</th>
+              <th>Type</th>
+              <th>Audience</th>
+              <th>Status</th>
+              <th>Published</th>
+              <th>Author</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% notifications.forEach((item) => { %>
+              <tr>
+                <td data-label="Notification">
+                  <strong><%= item.is_pinned ? 'Pinned - ' : '' %><%= item.title %></strong>
+                  <small><%= item.message ? item.message.slice(0, 100) : '-' %></small>
+                  <% if (item.action_url) { %><small>Action: <%= item.action_label || item.action_url %></small><% } %>
+                </td>
+                <td data-label="Type"><span class="notification-badge type-<%= item.type %>"><%= titleCase(item.type) %></span></td>
+                <td data-label="Audience"><span class="notification-badge audience-<%= item.audience %>"><%= titleCase(item.audience) %></span></td>
+                <td data-label="Status"><span class="notification-badge status-<%= item.status %>"><%= titleCase(item.status) %></span></td>
+                <td data-label="Published"><%= formatDate(item.published_at) %></td>
+                <td data-label="Author">
+                  <strong><%= item.created_by_name || '-' %></strong>
+                  <small><%= item.created_by_email || '-' %></small>
+                </td>
+                <td data-label="Actions">
+                  <div class="table-actions">
+                    <a href="/admin/notifications/<%= item.id %>/edit" class="crud-btn tiny primary">Edit</a>
+                    <% if (item.status !== 'published') { %>
+                      <form method="POST" action="/admin/notifications/<%= item.id %>/publish">
+                        <button type="submit" class="crud-btn tiny secondary">Publish</button>
+                      </form>
+                    <% } %>
+                    <% if (item.status !== 'archived') { %>
+                      <form method="POST" action="/admin/notifications/<%= item.id %>/archive">
+                        <button type="submit" class="crud-btn tiny ghost">Archive</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="crud-pagination">
+        <% for (let page = 1; page <= pagination.totalPages; page += 1) { const pageQs = new URLSearchParams(qsBase); pageQs.set('page', page); %>
+          <a href="/admin/notifications?<%= pageQs.toString() %>" class="<%= page === pagination.page ? 'is-active' : '' %>"><%= page %></a>
+        <% } %>
+      </nav>
+    <% } %>
+  </section>
+</section>
+
+<%- include('../partials/shell-end') %>

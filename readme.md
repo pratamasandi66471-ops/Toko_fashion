@@ -23,7 +23,7 @@ Yang sudah kuat:
 - Struktur CSS sudah dipisah ke folder `base`, `customer`, `admin`, `staff`, dan `auth`; file CSS root lama hanya legacy compatibility copy.
 
 Yang masih belum selesai:
-- Admin placeholder nyata: promotions, content, dan notifications.
+- Tidak ada admin placeholder utama yang tersisa di sidebar production modules.
 - Admin Settings sudah editable di DB dan terintegrasi ke navbar, footer storefront, serta email template.
 - Service layer sudah mulai diisi, tetapi belum dipakai luas di semua controller/model.
 - Checkout shipping sudah membaca metode aktif dari tabel `shipping_methods`.
@@ -91,6 +91,8 @@ public/css/
       reviews.css
       settings.css
       shipping.css
+      marketing-content.css
+      notifications.css
       staff-management.css
       vouchers.css
   staff/
@@ -327,6 +329,35 @@ Important CSS notes:
 - [x] Uses `backend/controllers/adminReturn.controller.js`.
 - [!] MVP does not auto-restock inventory or execute real payment refunds.
 
+### Admin Promotions & Content
+
+- [x] `/admin/promotions` real promotions management page.
+- [x] `/admin/content` real banners/content management page.
+- [x] Admin can list, search, create, edit, and toggle marketing content.
+- [x] Content types: `promotion`, `banner`, and `announcement`.
+- [x] Placement support: `homepage`, `shop`, `product_detail`, and `global`.
+- [x] Marketing content is stored in the `marketing_contents` table.
+- [x] Migration `database/migrations/create_marketing_contents_table.sql`.
+- [x] `database/schema.sql` includes `marketing_contents` for fresh setup.
+- [x] Marketing content changes are audited after successful admin actions.
+- [x] Uses `backend/models/adminMarketingContent.model.js`.
+- [x] Uses `backend/controllers/adminMarketingContent.controller.js`.
+- [!] Storefront rendering integration is intentionally staged for a later step.
+
+### Admin Notifications
+
+- [x] `/admin/notifications` real notifications center page.
+- [x] Admin can list, search, create, edit, publish, and archive notifications.
+- [x] Notification types: `info`, `success`, `warning`, and `danger`.
+- [x] Notification audiences: `admin`, `staff`, `customer`, and `all`.
+- [x] Notifications are stored in the `notifications` table.
+- [x] Migration `database/migrations/create_notifications_table.sql`.
+- [x] `database/schema.sql` includes `notifications` for fresh setup.
+- [x] Notification changes are audited after successful admin actions.
+- [x] Uses `backend/models/adminNotification.model.js`.
+- [x] Uses `backend/controllers/adminNotification.controller.js`.
+- [!] Email/push delivery and per-user read tracking are intentionally staged for a later step.
+
 ### Admin Review Management
 
 - [x] `/admin/reviews` list.
@@ -449,9 +480,7 @@ Important CSS notes:
 
 ### Admin Modules Still Placeholder
 
-- [ ] `/admin/promotions`
-- [ ] `/admin/content`
-- [ ] `/admin/notifications`
+- [x] No main admin sidebar placeholder remains.
 
 ### Backend Files Still Empty / Not Fully Integrated
 
@@ -595,9 +624,25 @@ Important CSS notes:
 | GET | `/admin/returns/:id` | Active |
 | POST | `/admin/returns/:id/status` | Active |
 | POST | `/admin/returns/:id/note` | Active |
-| GET | `/admin/promotions` | Placeholder |
-| GET | `/admin/content` | Placeholder |
-| GET | `/admin/notifications` | Placeholder |
+| GET | `/admin/promotions` | Active |
+| GET | `/admin/promotions/create` | Active |
+| POST | `/admin/promotions` | Active |
+| GET | `/admin/promotions/:id/edit` | Active |
+| POST | `/admin/promotions/:id/update` | Active |
+| POST | `/admin/promotions/:id/toggle-status` | Active |
+| GET | `/admin/content` | Active |
+| GET | `/admin/content/create` | Active |
+| POST | `/admin/content` | Active |
+| GET | `/admin/content/:id/edit` | Active |
+| POST | `/admin/content/:id/update` | Active |
+| POST | `/admin/content/:id/toggle-status` | Active |
+| GET | `/admin/notifications` | Active |
+| GET | `/admin/notifications/create` | Active |
+| POST | `/admin/notifications` | Active |
+| GET | `/admin/notifications/:id/edit` | Active |
+| POST | `/admin/notifications/:id/update` | Active |
+| POST | `/admin/notifications/:id/publish` | Active |
+| POST | `/admin/notifications/:id/archive` | Active |
 
 ### Staff Routes
 
@@ -629,6 +674,8 @@ Main tables used by runtime:
 - `reviews`
 - `vouchers`
 - `settings`
+- `marketing_contents`
+- `notifications`
 - `shipping_methods`
 - `return_requests`
 - `audit_logs` via migration
@@ -645,6 +692,8 @@ Important notes:
 - `database/migration_hardening_cart_checkout.sql` exists for legacy hardening.
 - `database/migrations/create_audit_logs.sql` must be run before using `/admin/audit-logs`.
 - `database/migrations/create_settings_table.sql` creates DB-backed admin settings.
+- `database/migrations/create_marketing_contents_table.sql` creates DB-backed promotions/content.
+- `database/migrations/create_notifications_table.sql` creates DB-backed admin notifications.
 - `database/migrations/create_shipping_methods_table.sql` creates DB-backed checkout shipping methods.
 - `database/migrations/create_return_requests_table.sql` creates DB-backed return/refund requests.
 - Back up DB before running migrations.
@@ -684,6 +733,12 @@ Implemented views include:
   - `backend/views/admin/returns/index.ejs`
   - `backend/views/admin/returns/create.ejs`
   - `backend/views/admin/returns/detail.ejs`
+  - `backend/views/admin/marketing-content/index.ejs`
+  - `backend/views/admin/marketing-content/create.ejs`
+  - `backend/views/admin/marketing-content/edit.ejs`
+  - `backend/views/admin/notifications/index.ejs`
+  - `backend/views/admin/notifications/create.ejs`
+  - `backend/views/admin/notifications/edit.ejs`
 - Staff:
   - `backend/views/staff/dashboard.ejs`
   - `backend/views/staff/orders.ejs`
@@ -703,9 +758,11 @@ Legacy/old admin views still present but not the main route target for implement
 ## Known Gaps & Technical Debt
 
 1. **Placeholder admin modules**
-   - Promotions, content, and notifications still render placeholder pages.
+   - No main admin sidebar module is still a placeholder.
    - Shipping is DB-backed for flat shipping methods, but does not yet support region-based rates, courier API sync, or tracking provider integration.
    - Returns/refunds are DB-backed, but do not yet auto-restock inventory or execute real payment gateway refunds.
+   - Promotions/content are DB-backed, but storefront rendering per placement is intentionally staged for a later step.
+   - Notifications are DB-backed, but email/push delivery and per-user read tracking are later steps.
    - Settings are DB-backed and used by navbar/footer/email templates; logo upload and maintenance mode are still later steps.
 
 2. **Service layer cleanup**
@@ -767,8 +824,8 @@ Legacy/old admin views still present but not the main route target for implement
 - [x] Website settings.
 - [x] Shipping management.
 - [x] Returns/refund workflow.
-- [ ] Promotions/content management.
-- [ ] Notifications center.
+- [x] Promotions/content management.
+- [x] Notifications center.
 
 ### Phase 3 - Quality & Hardening
 
@@ -806,15 +863,13 @@ Alasan prioritas:
 Status: **belum selesai**.
 
 Route yang masih placeholder:
-- `/admin/promotions`
-- `/admin/content`
-- `/admin/notifications`
+- Tidak ada route utama admin sidebar yang masih placeholder.
 
 Rekomendasi urutan:
-- Promotions/content management, karena coupon/voucher, settings, dan storefront sudah tersedia.
+- Promotions/content storefront integration jika ingin banner/promo tampil otomatis di homepage/shop.
+- Notifications lanjutan jika ingin bell dropdown global, per-user read tracking, atau email/push broadcast.
 - Shipping lanjutan hanya jika butuh rate per wilayah, integrasi courier API, atau tracking provider.
 - Returns lanjutan hanya jika butuh auto-restock, payment gateway refund, atau customer-submitted return request.
-- Notifications center, karena email service dan audit trail sudah ada.
 - Integrasi settings lanjutan ke logo upload dan maintenance mode.
 
 ### Priority 3 - Test Coverage Expansion
@@ -834,7 +889,7 @@ Yang masih bagus ditambahkan:
 - Upload image validation tests.
 - Voucher edge case tests.
 - Error middleware tests.
-- Promotions/content/notifications tests setelah modulnya dibuat.
+- Notification read-tracking/email-broadcast tests jika fitur lanjutannya dibuat.
 
 ### Priority 4 - Optional Route/Frontend Cleanup
 
@@ -997,6 +1052,7 @@ Fastest high-impact next step:
 After that:
 
 2. Move stock and payment helper logic into `stock.service.js` and `payment.service.js`.
-3. Build promotions/content management.
-4. Build notifications center and continue DB settings integration for logo upload and maintenance mode.
-5. Expand tests for staff workflow, uploads, voucher edge cases, shipping/returns edge cases, and error middleware.
+3. Continue DB settings integration for logo upload and maintenance mode.
+4. Integrate marketing content into storefront placements when ready.
+5. Add notification read tracking or broadcast delivery when needed.
+6. Expand tests for staff workflow, uploads, voucher edge cases, shipping/returns/marketing/notification edge cases, and error middleware.

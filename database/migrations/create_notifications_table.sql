@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS notifications (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(150) NOT NULL,
+  message TEXT NOT NULL,
+  type ENUM('info', 'success', 'warning', 'danger') NOT NULL DEFAULT 'info',
+  audience ENUM('admin', 'staff', 'customer', 'all') NOT NULL DEFAULT 'admin',
+  status ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'draft',
+  action_label VARCHAR(80) NULL,
+  action_url VARCHAR(255) NULL,
+  is_pinned TINYINT(1) NOT NULL DEFAULT 0,
+  created_by BIGINT UNSIGNED NULL,
+  published_at DATETIME NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_notifications_status (status),
+  INDEX idx_notifications_audience (audience),
+  INDEX idx_notifications_type (type),
+  INDEX idx_notifications_pinned (is_pinned),
+  INDEX idx_notifications_created_at (created_at)
+);

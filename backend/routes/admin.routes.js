@@ -7,6 +7,8 @@ const adminController = require("../controllers/admin.controller");
 const adminCategoryController = require("../controllers/adminCategory.controller");
 const adminCustomerController = require("../controllers/adminCustomer.controller");
 const adminInventoryController = require("../controllers/adminInventory.controller");
+const adminMarketingContentController = require("../controllers/adminMarketingContent.controller");
+const adminNotificationController = require("../controllers/adminNotification.controller");
 const adminOrderController = require("../controllers/adminOrder.controller");
 const adminPaymentController = require("../controllers/adminPayment.controller");
 const adminProfileController = require("../controllers/adminProfile.controller");
@@ -107,7 +109,12 @@ router.post("/returns/:id/note", adminReturnController.updateNote);
 router.get("/reviews", adminReviewController.index);
 router.get("/reviews/:id", adminReviewController.show);
 router.post("/reviews/:id/delete", adminReviewController.delete);
-router.get("/promotions", adminController.renderPlaceholder("promotions"));
+router.get("/promotions", adminMarketingContentController.promotionsIndex);
+router.get("/promotions/create", adminMarketingContentController.promotionsCreate);
+router.post("/promotions", adminMarketingContentController.promotionsStore);
+router.get("/promotions/:id/edit", adminMarketingContentController.promotionsEdit);
+router.post("/promotions/:id/update", adminMarketingContentController.promotionsUpdate);
+router.post("/promotions/:id/toggle-status", adminMarketingContentController.promotionsToggleStatus);
 router.get("/vouchers", (req, res) => res.redirect("/admin/coupons"));
 router.get("/coupons", adminVoucherController.index);
 router.get("/coupons/create", adminVoucherController.showCreate);
@@ -115,16 +122,23 @@ router.post("/coupons", adminVoucherController.create);
 router.get("/coupons/:id/edit", adminVoucherController.showEdit);
 router.post("/coupons/:id/update", adminVoucherController.update);
 router.post("/coupons/:id/toggle-status", adminVoucherController.toggleStatus);
-router.get("/content", adminController.renderPlaceholder("content"));
+router.get("/content", adminMarketingContentController.contentIndex);
+router.get("/content/create", adminMarketingContentController.contentCreate);
+router.post("/content", adminMarketingContentController.contentStore);
+router.get("/content/:id/edit", adminMarketingContentController.contentEdit);
+router.post("/content/:id/update", adminMarketingContentController.contentUpdate);
+router.post("/content/:id/toggle-status", adminMarketingContentController.contentToggleStatus);
 
 // System placeholder
 router.get("/reports", adminReportController.index);
 router.get("/audit-logs", adminAuditController.index);
-router.get(
-  "/notifications",
-  adminController.renderPlaceholder("notifications"),
-  
-);
+router.get("/notifications", adminNotificationController.index);
+router.get("/notifications/create", adminNotificationController.showCreate);
+router.post("/notifications", adminNotificationController.create);
+router.get("/notifications/:id/edit", adminNotificationController.showEdit);
+router.post("/notifications/:id/update", adminNotificationController.update);
+router.post("/notifications/:id/publish", adminNotificationController.publish);
+router.post("/notifications/:id/archive", adminNotificationController.archive);
 router.get("/settings", adminSettingsController.showSettings);
 router.post("/settings", adminSettingsController.updateSettings);
 

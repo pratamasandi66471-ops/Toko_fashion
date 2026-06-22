@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS marketing_contents (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  content_type ENUM('promotion', 'banner', 'announcement') NOT NULL DEFAULT 'promotion',
+  title VARCHAR(150) NOT NULL,
+  subtitle VARCHAR(255) NULL,
+  body TEXT NULL,
+  image_url VARCHAR(255) NULL,
+  cta_label VARCHAR(80) NULL,
+  cta_url VARCHAR(255) NULL,
+  placement VARCHAR(80) NOT NULL DEFAULT 'homepage',
+  status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+  sort_order INT NOT NULL DEFAULT 0,
+  starts_at DATETIME NULL,
+  ends_at DATETIME NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_marketing_contents_type (content_type),
+  INDEX idx_marketing_contents_status (status),
+  INDEX idx_marketing_contents_placement (placement),
+  INDEX idx_marketing_contents_schedule (starts_at, ends_at),
+  INDEX idx_marketing_contents_sort (sort_order)
+);

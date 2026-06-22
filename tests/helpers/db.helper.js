@@ -92,6 +92,62 @@ async function ensureTestReturnRequestsTable() {
   );
 }
 
+async function ensureTestMarketingContentsTable() {
+  assertTestDatabase();
+
+  await query(
+    `CREATE TABLE IF NOT EXISTS marketing_contents (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      content_type ENUM('promotion', 'banner', 'announcement') NOT NULL DEFAULT 'promotion',
+      title VARCHAR(150) NOT NULL,
+      subtitle VARCHAR(255) NULL,
+      body TEXT NULL,
+      image_url VARCHAR(255) NULL,
+      cta_label VARCHAR(80) NULL,
+      cta_url VARCHAR(255) NULL,
+      placement VARCHAR(80) NOT NULL DEFAULT 'homepage',
+      status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+      sort_order INT NOT NULL DEFAULT 0,
+      starts_at DATETIME NULL,
+      ends_at DATETIME NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_marketing_contents_type (content_type),
+      INDEX idx_marketing_contents_status (status),
+      INDEX idx_marketing_contents_placement (placement),
+      INDEX idx_marketing_contents_schedule (starts_at, ends_at),
+      INDEX idx_marketing_contents_sort (sort_order)
+    )`
+  );
+}
+
+async function ensureTestNotificationsTable() {
+  assertTestDatabase();
+
+  await query(
+    `CREATE TABLE IF NOT EXISTS notifications (
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(150) NOT NULL,
+      message TEXT NOT NULL,
+      type ENUM('info', 'success', 'warning', 'danger') NOT NULL DEFAULT 'info',
+      audience ENUM('admin', 'staff', 'customer', 'all') NOT NULL DEFAULT 'admin',
+      status ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'draft',
+      action_label VARCHAR(80) NULL,
+      action_url VARCHAR(255) NULL,
+      is_pinned TINYINT(1) NOT NULL DEFAULT 0,
+      created_by BIGINT UNSIGNED NULL,
+      published_at DATETIME NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_notifications_status (status),
+      INDEX idx_notifications_audience (audience),
+      INDEX idx_notifications_type (type),
+      INDEX idx_notifications_pinned (is_pinned),
+      INDEX idx_notifications_created_at (created_at)
+    )`
+  );
+}
+
 async function getActiveVariantWithStock() {
   return queryOne(
     `SELECT pv.id, pv.stock, pv.product_id, pv.status, pv.variant_sku
@@ -388,6 +444,52 @@ async function cleanupReturnsByOrderId(orderId) {
   );
 }
 
+async function getMarketingContentByTitle(title) {
+  return queryOne(
+    `SELECT mc.id, mc.content_type, mc.title, mc.subtitle, mc.body, mc.image_url,
+            mc.cta_label, mc.cta_url, mc.placement, mc.status, mc.sort_order
+     FROM marketing_contents mc
+     WHERE mc.title = ?
+     ORDER BY mc.id DESC
+     LIMIT 1`,
+    [String(title || '').trim()]
+  );
+}
+
+async function cleanupMarketingContentByTitle(title) {
+  assertTestDatabase();
+
+  await query(
+    `DELETE mc
+     FROM marketing_contents mc
+     WHERE mc.title = ?`,
+    [String(title || '').trim()]
+  );
+}
+
+async function getNotificationByTitle(title) {
+  return queryOne(
+    `SELECT n.id, n.title, n.message, n.type, n.audience, n.status,
+            n.action_label, n.action_url, n.is_pinned, n.published_at
+     FROM notifications n
+     WHERE n.title = ?
+     ORDER BY n.id DESC
+     LIMIT 1`,
+    [String(title || '').trim()]
+  );
+}
+
+async function cleanupNotificationByTitle(title) {
+  assertTestDatabase();
+
+  await query(
+    `DELETE n
+     FROM notifications n
+     WHERE n.title = ?`,
+    [String(title || '').trim()]
+  );
+}
+
 async function getPaymentByOrderId(orderId) {
   return queryOne(
     `SELECT pay.id, pay.order_id, pay.method, pay.payment_method, pay.amount,
@@ -450,6 +552,8 @@ module.exports = {
   queryOne,
   ensureTestShippingMethods,
   ensureTestReturnRequestsTable,
+  ensureTestMarketingContentsTable,
+  ensureTestNotificationsTable,
   getActiveProductSlug,
   getActiveVariantWithStock,
   getCustomerByEmail,
@@ -473,6 +577,10 @@ module.exports = {
   getReturnByCode,
   getReturnByOrderId,
   cleanupReturnsByOrderId,
+  getMarketingContentByTitle,
+  cleanupMarketingContentByTitle,
+  getNotificationByTitle,
+  cleanupNotificationByTitle,
   getPaymentByOrderId,
   getOrderItems,
   getLatestAuditLog,
