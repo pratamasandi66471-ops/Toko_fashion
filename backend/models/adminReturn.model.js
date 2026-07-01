@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const orderService = require('../services/order.service');
 
 const RETURN_STATUSES = Object.freeze([
   'requested',
@@ -9,7 +10,8 @@ const RETURN_STATUSES = Object.freeze([
   'cancelled',
 ]);
 
-const ELIGIBLE_ORDER_STATUSES = Object.freeze(['shipped', 'completed']);
+// Use order service for eligible order statuses
+const ELIGIBLE_ORDER_STATUSES = Object.freeze(Array.from(orderService.RETURN_ELIGIBLE_STATUSES));
 
 function normalizePage(value) {
   const parsed = Number(value);

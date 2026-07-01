@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const orderService = require('../services/order.service');
+const stockService = require('../services/stock.service');
 
 const ALLOWED_ORDER_STATUSES = orderService.ALLOWED_MAIN_STATUSES;
 
@@ -177,17 +178,61 @@ async function updateTracking(orderId, { courier, trackingNumber }) {
 }
 
 async function cancelOrder(orderId) {
-  const result = await db.query(
-    `UPDATE orders o
-     SET o.status = 'cancelled',
-         o.order_status = 'cancelled',
-         o.updated_at = NOW()
-     WHERE o.id = ?
-       AND o.status NOT IN ('completed', 'cancelled')`,
-    [orderId]
-  );
+  const conn = await db.pool.getConnection();
 
-  return result.affectedRows || 0;
+  try {
+    await conn.beginTransaction();
+
+    const [orderRows] = await conn.execute(
+      `SELECT o.id, o.status
+       FROM orders o
+       WHERE o.id = ?
+       LIMIT 1
+       FOR UPDATE`,
+      [orderId]
+    );
+
+    const order = orderRows[0];
+    if (!order) {
+      await conn.rollback();
+      return 0;
+    }
+
+    if (!orderService.canCancelOrder(order.status)) {
+      throw orderService.createOrderError('CANNOT_CANCEL_ORDER', `Tidak bisa membatalkan order dengan status ${order.status}.`);
+    }
+
+    const [items] = await conn.execute(
+      `SELECT oi.product_variant_id, oi.quantity
+       FROM order_items oi
+       WHERE oi.order_id = ?
+       FOR UPDATE`,
+      [orderId]
+    );
+
+    const [result] = await conn.execute(
+      `UPDATE orders o
+       SET o.status = 'cancelled',
+           o.order_status = 'cancelled',
+           o.updated_at = NOW()
+       WHERE o.id = ?`,
+      [orderId]
+    );
+
+    for (const item of items) {
+      if (item.product_variant_id && Number(item.quantity) > 0) {
+        await stockService.increaseStock(conn, item.product_variant_id, Number(item.quantity));
+      }
+    }
+
+    await conn.commit();
+    return result.affectedRows || 0;
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
 }
 
 module.exports = {

@@ -1,21 +1,12 @@
 const db = require('../config/database');
 const stockService = require('../services/stock.service');
+const orderService = require('../services/order.service');
 
 const LOW_STOCK_THRESHOLD = 5;
 const PRODUCT_IMAGE_FALLBACK = '/images/placeholder-product.jpg';
-const STAFF_ORDER_STATUSES = new Set(['pending', 'processing', 'shipped', 'completed']);
-const ORDER_STATUS_MAP = {
-  pending: 'pending',
-  processing: 'confirmed',
-  shipped: 'shipped',
-  completed: 'completed',
-};
-const ALLOWED_TRANSITIONS = {
-  pending: new Set(['processing']),
-  processing: new Set(['shipped']),
-  shipped: new Set(['completed']),
-  completed: new Set([]),
-};
+const STAFF_ORDER_STATUSES = new Set(Array.from(orderService.ALLOWED_MAIN_STATUSES));
+const ORDER_STATUS_MAP = orderService.MAIN_TO_ORDER_STATUS;
+const ALLOWED_TRANSITIONS = orderService.STAFF_ALLOWED_TRANSITIONS;
 const ALLOWED_STOCK_FILTERS = new Set(['available', 'low', 'out']);
 const ALLOWED_VARIANT_STATUSES = new Set(['active', 'inactive']);
 
@@ -37,8 +28,9 @@ function domainError(code, message) {
 }
 
 function buildOrderFilters({ q = '', status = '' } = {}) {
-  const where = ['o.status IN (?, ?, ?, ?)'];
-  const params = ['pending', 'processing', 'shipped', 'completed'];
+  const allowedStatuses = Array.from(orderService.ALLOWED_MAIN_STATUSES);
+  const where = ['o.status IN (?'.concat(', ?'.repeat(allowedStatuses.length - 1), ')').split('?').map((_, i) => i === 0 ? 'o.status IN (' : '').join('') + allowedStatuses.map(() => '?').join(', ') + ')'];
+  const params = [...allowedStatuses];
   const search = String(q || '').trim();
   const statusFilter = String(status || '').trim().toLowerCase();
 
@@ -238,8 +230,8 @@ async function getOrderItems(orderId) {
 }
 
 async function updateOrderStatus(orderId, newStatus) {
-  const status = String(newStatus || '').trim().toLowerCase();
-  if (!STAFF_ORDER_STATUSES.has(status)) {
+  const status = orderService.normalizeOrderStatus(newStatus);
+  if (!status) {
     throw domainError('INVALID_STATUS', 'Status order tidak valid untuk staff.');
   }
 
@@ -247,9 +239,9 @@ async function updateOrderStatus(orderId, newStatus) {
     `SELECT o.id, o.status, o.courier, o.tracking_number
      FROM orders o
      WHERE o.id = ?
-       AND o.status IN ('pending', 'processing', 'shipped', 'completed')
+       AND o.status IN (${Array.from(orderService.ALLOWED_MAIN_STATUSES).map(() => '?').join(', ')})
      LIMIT 1`,
-    [orderId]
+    [orderId, ...Array.from(orderService.ALLOWED_MAIN_STATUSES)]
   );
   const order = rows[0];
 
@@ -257,21 +249,25 @@ async function updateOrderStatus(orderId, newStatus) {
     throw domainError('ORDER_NOT_FOUND', 'Order tidak ditemukan.');
   }
 
-  if (!ALLOWED_TRANSITIONS[order.status]?.has(status)) {
-    throw domainError('INVALID_TRANSITION', `Transisi ${order.status} ke ${status} tidak diizinkan.`);
+  // Validate staff-restricted transition using order service
+  try {
+    orderService.validateStaffOrderStatusTransition(order.status, status);
+  } catch (error) {
+    throw domainError('INVALID_TRANSITION', error.message);
   }
 
   if (status === 'shipped' && (!order.courier || !order.tracking_number)) {
     throw domainError('TRACKING_REQUIRED', 'Courier dan tracking number wajib diisi sebelum order dikirim.');
   }
 
+  const orderStatus = orderService.mapMainStatusToOrderStatus(status);
   const result = await db.query(
     `UPDATE orders o
      SET o.status = ?,
          o.order_status = ?,
          o.updated_at = NOW()
      WHERE o.id = ?`,
-    [status, ORDER_STATUS_MAP[status], orderId]
+    [status, orderStatus, orderId]
   );
 
   return result.affectedRows > 0;

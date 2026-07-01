@@ -22,6 +22,18 @@ const FORWARD_TRANSITIONS = {
   cancelled: new Set([]),
 };
 
+// Statuses eligible for returns/refunds
+const RETURN_ELIGIBLE_STATUSES = new Set(['shipped', 'completed']);
+
+// Staff-restricted transitions (more limited than admin)
+const STAFF_ALLOWED_TRANSITIONS = {
+  pending: new Set(['processing']),
+  processing: new Set(['shipped']),
+  shipped: new Set(['completed']),
+  completed: new Set([]),
+  cancelled: new Set([]),
+};
+
 function normalizeOrderStatus(status) {
   const normalized = String(status || '').trim().toLowerCase();
   return ALLOWED_MAIN_STATUSES.has(normalized) ? normalized : '';
@@ -99,14 +111,69 @@ async function generateUniqueInvoiceNumber(connection) {
   });
 }
 
+function isStatusEligibleForReturn(status) {
+  const normalized = normalizeOrderStatus(status);
+  return RETURN_ELIGIBLE_STATUSES.has(normalized);
+}
+
+function validateStaffOrderStatusTransition(currentStatus, nextStatus) {
+  const current = assertAllowedOrderStatus(currentStatus);
+  const next = assertAllowedOrderStatus(nextStatus);
+
+  if (current === next) {
+    return {
+      valid: true,
+      currentStatus: current,
+      nextStatus: next,
+      orderStatus: mapMainStatusToOrderStatus(next),
+    };
+  }
+
+  const allowedNext = STAFF_ALLOWED_TRANSITIONS[current] || new Set();
+  if (!allowedNext.has(next)) {
+    throw createOrderError(
+      'INVALID_ORDER_STATUS_TRANSITION',
+      `Staf tidak bisa mengubah status dari ${current} ke ${next}.`
+    );
+  }
+
+  return {
+    valid: true,
+    currentStatus: current,
+    nextStatus: next,
+    orderStatus: mapMainStatusToOrderStatus(next),
+  };
+}
+
+function canCancelOrder(currentStatus) {
+  const normalized = normalizeOrderStatus(currentStatus);
+  if (!normalized) return false;
+  // Can cancel from pending or processing, but not from shipped or completed
+  return FORWARD_TRANSITIONS[normalized].has('cancelled');
+}
+
+function getInitialOrderStatus() {
+  return {
+    status: 'pending',
+    orderStatus: mapMainStatusToOrderStatus('pending'),
+  };
+}
+
 module.exports = {
   ALLOWED_MAIN_STATUSES,
   MAIN_TO_ORDER_STATUS,
   FORWARD_TRANSITIONS,
+  RETURN_ELIGIBLE_STATUSES,
+  STAFF_ALLOWED_TRANSITIONS,
+  createOrderError,
   normalizeOrderStatus,
   assertAllowedOrderStatus,
   mapMainStatusToOrderStatus,
   validateOrderStatusTransition,
+  validateStaffOrderStatusTransition,
+  isStatusEligibleForReturn,
+  canCancelOrder,
+  getInitialOrderStatus,
   generateOrderCode,
   generateInvoiceNumber,
   generateUniqueOrderCode,

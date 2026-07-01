@@ -303,6 +303,7 @@ async function placeOrderFromCart({ userId, addressId, shippingMethod, paymentMe
     const orderCode = await orderService.generateUniqueOrderCode(conn);
     const invoiceNumber = await orderService.generateUniqueInvoiceNumber(conn);
     const paymentStatus = payment.initialStatus;
+    const initialOrderStatus = orderService.getInitialOrderStatus();
 
     const orderColumns = await getOrdersColumns();
     const includeLegacyUserId = orderColumns.has('user_id');
@@ -335,8 +336,8 @@ async function placeOrderFromCart({ userId, addressId, shippingMethod, paymentMe
       shippingCost,
       discountAmount,
       totalAmount,
-      'pending',
-      'pending',
+      initialOrderStatus.status,
+      initialOrderStatus.orderStatus,
       paymentStatus,
       shipping.key,
       notes || null,

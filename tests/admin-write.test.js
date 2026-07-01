@@ -10,6 +10,7 @@ const {
   getActiveVariantWithStock,
   getLatestAuditLog,
   getOrderByMarker,
+  getOrderItems,
   getPaymentByOrderId,
   getTestCustomer,
   getVariantById,
@@ -173,6 +174,52 @@ describe('admin write actions', () => {
       auditLogId = auditLog.id;
     } finally {
       if (auditLogId) await cleanupAuditLogById(auditLogId);
+      await restoreVariantStock(variant.id, originalStock);
+    }
+  });
+
+  test('admin can cancel pending order and stock is restored', async () => {
+    const marker = createTestMarker('ADMIN_ORDER_CANCEL');
+    const fixture = await createCheckoutOrderFixture({ marker, quantity: 2, stock: 20 });
+    if (!fixture) return;
+
+    const { customer, variant, originalStock, order } = fixture;
+    let auditLogId = null;
+
+    try {
+      const stockAfterCheckout = await getVariantById(variant.id);
+      expect(Number(stockAfterCheckout.stock)).toBe(18);
+
+      const items = await getOrderItems(order.id);
+      expect(items.some((item) => Number(item.product_variant_id) === Number(variant.id))).toBe(true);
+
+      const adminAgent = await loginAsAdmin();
+      const response = await adminAgent.post(`/admin/orders/${order.id}/cancel`).type('form').send({});
+
+      expect(response.status).toBe(302);
+      expect(response.headers.location).toBe(`/admin/orders/${order.id}`);
+
+      const updatedOrder = await getOrderByMarker(marker);
+      expect(updatedOrder.status).toBe('cancelled');
+      expect(updatedOrder.order_status).toBe('cancelled');
+
+      const restoredVariant = await getVariantById(variant.id);
+      expect(Number(restoredVariant.stock)).toBe(20);
+
+      const auditLog = await getLatestAuditLog({
+        action: 'ORDER_CANCELLED',
+        entityType: 'order',
+        entityId: order.id,
+      });
+
+      expect(auditLog).toBeTruthy();
+      expect(auditLog.action).toBe('ORDER_CANCELLED');
+      expect(auditLog.new_values).toContain('cancelled');
+      auditLogId = auditLog.id;
+    } finally {
+      if (auditLogId) await cleanupAuditLogById(auditLogId);
+      await cleanupOrdersByMarker(marker);
+      await cleanupCustomerCart(customer.id);
       await restoreVariantStock(variant.id, originalStock);
     }
   });

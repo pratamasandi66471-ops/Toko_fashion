@@ -199,6 +199,11 @@ async function cancel(req, res, next) {
     req.flash('success', 'Order berhasil dibatalkan.');
     return res.redirect(`/admin/orders/${orderId}`);
   } catch (error) {
+    if (error.code === 'CANNOT_CANCEL_ORDER') {
+      req.flash('error', error.message);
+      return res.redirect(`/admin/orders/${orderId}`);
+    }
+
     return next(error);
   }
 }

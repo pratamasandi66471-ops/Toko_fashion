@@ -188,7 +188,7 @@ FROM (
   UNION ALL SELECT 'ORD-2024', 'siti.aisyah@email.com', 990000, 'shipped', 'paid', 27, 16
   UNION ALL SELECT 'ORD-2025', 'budi.santoso@email.com', 430000, 'completed', 'paid', 29, 11
   UNION ALL SELECT 'ORD-2026', 'ananda.putri@email.com', 515000, 'processing', 'paid', 30, 13
-) 
+) t
 JOIN users u ON u.email = t.email
 JOIN addresses a ON a.user_id = u.id
 ON DUPLICATE KEY UPDATE
@@ -266,7 +266,13 @@ FROM (
 ) t
 JOIN orders o ON o.order_code = t.order_code
 JOIN products p ON p.sku = t.sku
-JOIN product_variants pv ON pv.product_id = p.id AND pv.variant_sku = t.sku
+JOIN product_variants pv ON pv.id = (
+  SELECT pv2.id
+  FROM product_variants pv2
+  WHERE pv2.product_id = p.id
+  ORDER BY pv2.id ASC
+  LIMIT 1
+)
 ON DUPLICATE KEY UPDATE
   quantity = VALUES(quantity),
    price = VALUES(price),
@@ -319,6 +325,14 @@ FROM (
 ) t
 JOIN products p ON p.sku = t.sku
 JOIN users u ON u.email = t.email
+JOIN orders o ON o.id = (
+  SELECT o2.id
+  FROM orders o2
+  WHERE o2.customer_id = u.id
+    AND o2.status IN ('completed', 'shipped')
+  ORDER BY o2.ordered_at DESC, o2.id DESC
+  LIMIT 1
+)
 ON DUPLICATE KEY UPDATE
   rating = VALUES(rating),
   message = VALUES(message),

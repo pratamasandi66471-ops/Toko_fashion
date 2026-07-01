@@ -2,6 +2,7 @@ const SUCCESS_PAYMENT_STATUS = 'paid';
 const FAILED_PAYMENT_STATUS = 'failed';
 const ALLOWED_PAYMENT_STATUSES = new Set(['unpaid', 'pending_verification', 'paid', 'failed']);
 const ORDER_PAYMENT_STATUSES = new Set(['unpaid', 'paid', 'failed', 'refunded']);
+const orderService = require('./order.service');
 
 function createPaymentError(code, message) {
   const error = new Error(message);
@@ -76,6 +77,16 @@ async function verifyPaymentTransaction(connection, paymentId) {
 
   assertOrderCanBeVerified(payment);
 
+  // Validate status transition using order service
+  const shouldMoveOrder = payment.order_status === 'pending';
+  if (shouldMoveOrder) {
+    try {
+      orderService.validateOrderStatusTransition(payment.order_status, 'processing');
+    } catch (error) {
+      throw createPaymentError('INVALID_ORDER_TRANSITION', error.message);
+    }
+  }
+
   await connection.execute(
     `UPDATE payments pay
      SET pay.status = ?,
@@ -84,16 +95,26 @@ async function verifyPaymentTransaction(connection, paymentId) {
     [SUCCESS_PAYMENT_STATUS, paymentId]
   );
 
-  const shouldMoveOrder = payment.order_status === 'pending';
-  await connection.execute(
-    `UPDATE orders o
-     SET o.payment_status = ?,
-         o.status = CASE WHEN ? THEN 'processing' ELSE o.status END,
-         o.order_status = CASE WHEN ? THEN 'confirmed' ELSE o.order_status END,
-         o.updated_at = NOW()
-     WHERE o.id = ?`,
-    [SUCCESS_PAYMENT_STATUS, shouldMoveOrder ? 1 : 0, shouldMoveOrder ? 1 : 0, payment.locked_order_id]
-  );
+  if (shouldMoveOrder) {
+    const newOrderStatus = orderService.mapMainStatusToOrderStatus('processing');
+    await connection.execute(
+      `UPDATE orders o
+       SET o.payment_status = ?,
+           o.status = 'processing',
+           o.order_status = ?,
+           o.updated_at = NOW()
+       WHERE o.id = ?`,
+      [SUCCESS_PAYMENT_STATUS, newOrderStatus, payment.locked_order_id]
+    );
+  } else {
+    await connection.execute(
+      `UPDATE orders o
+       SET o.payment_status = ?,
+           o.updated_at = NOW()
+       WHERE o.id = ?`,
+      [SUCCESS_PAYMENT_STATUS, payment.locked_order_id]
+    );
+  }
 
   return {
     paymentId,

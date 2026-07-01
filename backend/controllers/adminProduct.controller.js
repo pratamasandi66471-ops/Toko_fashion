@@ -3,7 +3,7 @@ const fs = require('fs');
 const categoryModel = require('../models/category.model');
 const productModel = require('../models/product.model');
 const auditService = require('../services/audit.service');
-const makeSlug = require('../helper/slugify');
+const productService = require('../services/product.service');
 
 function getWibDateLabel() {
   return new Intl.DateTimeFormat('id-ID', {
@@ -12,17 +12,6 @@ function getWibDateLabel() {
     month: 'short',
     year: 'numeric',
   }).format(new Date());
-}
-
-function toNullableNumber(value) {
-  if (value === undefined || value === null || value === '') return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : NaN;
-}
-
-function toStock(value) {
-  const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed >= 0 ? parsed : NaN;
 }
 
 function viewData(extra = {}) {
@@ -37,7 +26,7 @@ function viewData(extra = {}) {
 }
 
 function isChecked(value) {
-  return ['on', 'true', '1', true].includes(value);
+  return productService.isChecked(value);
 }
 
 function removeUploadedFile(file) {
@@ -53,55 +42,19 @@ function removeUploadedFile(file) {
 }
 
 function normalizeVariantInput(input) {
-  if (!input) return [];
-  if (Array.isArray(input)) return input;
-  return Object.keys(input).sort().map((key) => input[key]);
+  return productService.normalizeVariantInput(input);
 }
 
 function normalizeProductBody(body) {
-  const price = toNullableNumber(body.price);
-  const discountPrice = toNullableNumber(body.discount_price);
-
-  return {
-    categoryId: Number(body.category_id),
-    name: (body.name || '').trim(),
-    slug: makeSlug((body.slug || '').trim() || body.name),
-    description: (body.description || '').trim(),
-    price,
-    discountPrice,
-    sku: (body.sku || '').trim(),
-    status: body.status || 'active',
-    isFeatured: ['on', 'true', '1', true].includes(body.is_featured),
-  };
+  return productService.normalizeProductPayload(body);
 }
 
 function normalizeVariantBody(body) {
-  const stock = toStock(body.stock);
-  const priceOverride = toNullableNumber(body.price_override);
-
-  return {
-    size: (body.size || '').trim(),
-    color: (body.color || '').trim(),
-    colorCode: (body.color_code || '').trim(),
-    stock,
-    priceOverride,
-    status: body.status || 'active',
-    variantSku: (body.variant_sku || '').trim(),
-  };
+  return productService.normalizeVariantPayload(body);
 }
 
 async function validateProduct(payload, excludeId = null) {
-  const formErrors = {};
-
-  if (!payload.name) formErrors.name = 'Nama produk wajib diisi.';
-  if (!payload.slug) formErrors.slug = 'Slug produk wajib diisi.';
-  if (!payload.sku) formErrors.sku = 'SKU wajib diisi.';
-  if (!Number.isInteger(payload.categoryId) || payload.categoryId < 1) formErrors.category_id = 'Kategori wajib dipilih.';
-  if (!Number.isFinite(payload.price) || payload.price < 0) formErrors.price = 'Harga wajib diisi dan minimal 0.';
-  if (payload.discountPrice !== null && (!Number.isFinite(payload.discountPrice) || payload.discountPrice < 0)) {
-    formErrors.discount_price = 'Harga diskon minimal 0.';
-  }
-  if (!['draft', 'active', 'inactive'].includes(payload.status)) formErrors.status = 'Status produk tidak valid.';
+  const formErrors = productService.validateProductPayload(payload);
 
   if (payload.sku && await productModel.isSkuTaken(payload.sku, excludeId)) formErrors.sku = 'SKU produk sudah dipakai.';
   if (payload.slug && await productModel.isSlugTaken(payload.slug, excludeId)) formErrors.slug = 'Slug produk sudah dipakai.';
@@ -110,16 +63,7 @@ async function validateProduct(payload, excludeId = null) {
 }
 
 async function validateVariant(variant, excludeId = null) {
-  const formErrors = {};
-
-  if (!variant.size) formErrors.size = 'Size wajib diisi.';
-  if (!variant.color) formErrors.color = 'Color wajib diisi.';
-  if (!variant.variantSku) formErrors.variant_sku = 'Variant SKU wajib diisi.';
-  if (!Number.isFinite(variant.stock) || variant.stock < 0) formErrors.stock = 'Stock minimal 0.';
-  if (variant.priceOverride !== null && (!Number.isFinite(variant.priceOverride) || variant.priceOverride < 0)) {
-    formErrors.price_override = 'Price override minimal 0.';
-  }
-  if (!['active', 'inactive'].includes(variant.status)) formErrors.status = 'Status variant tidak valid.';
+  const formErrors = productService.validateVariantPayload(variant);
 
   if (variant.variantSku && await productModel.isVariantSkuTaken(variant.variantSku, excludeId)) {
     formErrors.variant_sku = 'Variant SKU sudah dipakai.';

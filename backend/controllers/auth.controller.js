@@ -1,6 +1,5 @@
-const bcrypt = require('bcrypt');
-
 const userModel = require('../models/user.model');
+const authService = require('../services/auth.service');
 const redirectByRole = require('../helper/redirectByRole');
 
 function renderRegister(res, data = {}) {
@@ -38,7 +37,7 @@ async function register(req, res) {
 
   const old = {
     name: req.body.name || '',
-    email: req.body.email || '',
+    email: authService.normalizeEmail(req.body.email),
     phone: req.body.phone || '',
     terms: req.body.terms || '',
   };
@@ -52,7 +51,8 @@ async function register(req, res) {
   }
 
   try {
-    const existingUser = await userModel.emailExists(req.body.email);
+    const email = authService.normalizeEmail(req.body.email);
+    const existingUser = await userModel.emailExists(email);
 
     if (existingUser) {
       res.status(422);
@@ -64,11 +64,11 @@ async function register(req, res) {
       });
     }
 
-    const passwordHash = await bcrypt.hash(req.body.password, 10);
+    const passwordHash = await authService.hashPassword(req.body.password);
 
     await userModel.createCustomer({
       name: req.body.name,
-      email: req.body.email,
+      email,
       phone: req.body.phone,
       passwordHash,
     });
@@ -102,7 +102,7 @@ async function login(req, res) {
   }
 
   const old = {
-    email: req.body.email || '',
+    email: authService.normalizeEmail(req.body.email),
   };
 
   if (req.formErrors && Object.keys(req.formErrors).length > 0) {
@@ -114,12 +114,9 @@ async function login(req, res) {
   }
 
   try {
-    const user = await userModel.findByEmail(req.body.email);
-    const userStatus = (user?.status || '').toLowerCase();
-    const isStatusActive = userStatus === 'active';
-    const hashedPassword = user?.password;
+    const user = await userModel.findByEmail(authService.normalizeEmail(req.body.email));
 
-    if (!user || !isStatusActive || !hashedPassword) {
+    if (!authService.canAuthenticate(user)) {
       res.status(401);
       return renderLogin(res, {
         formErrors: {
@@ -129,7 +126,7 @@ async function login(req, res) {
       });
     }
 
-    const isValidPassword = await bcrypt.compare(req.body.password, hashedPassword);
+    const isValidPassword = await authService.verifyPassword(req.body.password, user.password);
 
     if (!isValidPassword) {
       res.status(401);
@@ -141,15 +138,10 @@ async function login(req, res) {
       });
     }
 
-    req.session.user = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
+    req.session.user = authService.buildSessionUser(user);
 
     req.flash('success', `Selamat datang kembali, ${user.name}!`);
-    return res.redirect(redirectByRole(user.role));
+    return res.redirect(redirectByRole(req.session.user.role));
   } catch (error) {
     console.error(error);
 
